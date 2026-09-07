@@ -295,15 +295,15 @@ class DshBrain private constructor(private val context: Context) {
     /**
      * Check if dsh web server is running
      */
-    fun isRunning(): Boolean = runBlocking {
-        if (isRunning.get()) return@runBlocking true
-        // Fallback check via pgrep and curl
-        return@runBlocking try {
+    suspend fun isRunning(): Boolean {
+        if (isRunning.get()) return true
+        // Fallback check via pgrep and curl inside the Ubuntu container
+        return try {
             val portNum = port.get()
             val pgrepCmd = "pgrep -f \"[d]sh.*web\" || true"
             val pgrepResult = executeInUbuntu(pgrepCmd, timeoutMs = 20_000L)
             val processRunning = pgrepResult.stdout.trim().isNotBlank()
-            if (!processRunning) return@runBlocking false
+            if (!processRunning) return false
             val curlCmd = "curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:${portNum}/"
             val curlResult = executeInUbuntu(curlCmd, timeoutMs = 20_000L)
             val code = curlResult.stdout.trim()
@@ -316,12 +316,10 @@ class DshBrain private constructor(private val context: Context) {
     /**
      * Get the URL for the WebView (with token if available) - FIXED: reads log via shell from container
      */
-    fun getWebUrl(): String {
+    suspend fun getWebUrl(): String {
         val baseUrl = webUrl.get().takeIf { it.isNotBlank() } ?: "http://127.0.0.1:${port.get()}"
         return try {
-            val logResult = runBlocking {
-                executeInUbuntu("tail -n 200 /tmp/dsh.log 2>/dev/null || true", timeoutMs = 20_000L)
-            }
+            val logResult = executeInUbuntu("tail -n 200 /tmp/dsh.log 2>/dev/null || true", timeoutMs = 20_000L)
             if (logResult.stdout.isNotBlank()) {
                 val tokenRegex = Regex("token=([A-Za-z0-9_-]+)")
                 val match = tokenRegex.find(logResult.stdout)
@@ -336,6 +334,7 @@ class DshBrain private constructor(private val context: Context) {
                 baseUrl
             }
         } catch (e: Exception) {
+            AppLogger.w(TAG, "getWebUrl failed to read dsh log", e)
             baseUrl
         }
     }
@@ -353,13 +352,17 @@ class DshBrain private constructor(private val context: Context) {
      * Load the dsh web UI in a WebView
      */
     fun loadInWebView(webView: WebView) {
-        val url = getWebUrl()
-        AppLogger.d(TAG, "Loading WebView: $url")
-        webView.settings.javaScriptEnabled = true
-        webView.settings.domStorageEnabled = true
-        webView.settings.allowFileAccess = true
-        webView.settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-        webView.loadUrl(url)
+        scope.launch {
+            val url = getWebUrl()
+            AppLogger.d(TAG, "Loading WebView: $url")
+            webView.post {
+                webView.settings.javaScriptEnabled = true
+                webView.settings.domStorageEnabled = true
+                webView.settings.allowFileAccess = true
+                webView.settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                webView.loadUrl(url)
+            }
+        }
     }
 
     /**
@@ -822,7 +825,7 @@ class DshStatusToolExecutor(private val context: Context) : ToolExecutor {
             val internalRunning = brain.isRunning()
 
             // Check if dsh web process is running via pgrep inside the Ubuntu container
-            val port = brain.getWebUrl().substringAfterLast(":").toIntOrNull() ?: 3082
+            val port = brain.getWebUrl().substringAfterLast(":").substringBefore("?").substringBefore("/").toIntOrNull() ?: 3082
             val processRunning = try {
                 val pgrepResult = brain.executeInUbuntu(
                     "pgrep -f \"dsh.*web\" || true",
@@ -877,7 +880,7 @@ class DshSyncToolExecutor(private val context: Context) : ToolExecutor {
             return@runBlocking when (action) {
                 "status" -> {
                     val internalRunning = brain.isRunning()
-                    val port = brain.getWebUrl().substringAfterLast(":").toIntOrNull() ?: 3082
+                    val port = brain.getWebUrl().substringAfterLast(":").substringBefore("?").substringBefore("/").toIntOrNull() ?: 3082
                     val actuallyRunning = try {
                         val result = brain.executeInUbuntu(
                             "curl -s -m 3 http://127.0.0.1:$port/ | head -c 100",
