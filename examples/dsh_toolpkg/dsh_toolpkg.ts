@@ -183,8 +183,10 @@ export async function dsh_status() {
   const result = await callKotlinTool('dsh_status', {});
 
   if (result?.success) {
-    const running = result?.result?.includes?.('running') ?? false;
-    const url = running ? `http://127.0.0.1:${DSH_DEFAULT_PORT}` : 'not running';
+    const statusText = String(result?.result ?? '');
+    const running = statusText.includes('status: running');
+    const urlMatch = statusText.match(/\bat\s+(https?:\/\/\S+)/);
+    const url = running ? (urlMatch ? urlMatch[1] : `http://127.0.0.1:${DSH_DEFAULT_PORT}`) : 'not running';
 
     complete({
       success: true,
