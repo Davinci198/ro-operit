@@ -13,7 +13,6 @@ import com.ai.assistance.operit.data.agent.DshRunToolExecutor
 import com.ai.assistance.operit.data.agent.DshSyncToolExecutor
 import com.ai.assistance.operit.data.agent.DshWebviewUrlToolExecutor
 import com.ai.assistance.operit.core.tools.defaultTool.ToolGetter
-import com.ai.assistance.operit.core.tools.system.AndroidShellExecutor
 import com.ai.assistance.operit.data.model.AITool
 import com.ai.assistance.operit.data.model.ToolParameter
 import com.ai.assistance.operit.data.model.ToolResult
@@ -464,9 +463,13 @@ fun registerAllTools(handler: AIToolHandler, context: Context) {
             descriptionGenerator = { _ -> "Install/update DSH CLI in Ubuntu (npm i -g @deepseek-ai/dsh@latest)" },
             executor = { tool ->
                 runBlocking(Dispatchers.IO) {
-                    // Execute directly in Ubuntu without requiring DshBrain to be running
-                    val output = AndroidShellExecutor.executeShellCommand(
-                        "bash -c \"npm config set registry https://registry.npmjs.org/ && npm i -g @deepseek-ai/dsh@latest\""
+                    // Execute directly in the Ubuntu container without requiring DshBrain
+                    // to be running. AndroidShellExecutor cannot run this: the Android
+                    // shell has no bash and no access to the container filesystem.
+                    val brain = DshBrain.getInstance(context)
+                    val output = brain.executeInUbuntu(
+                        "npm config set registry https://registry.npmjs.org/ && npm i -g @deepseek-ai/dsh@latest",
+                        timeoutMs = 600_000L
                     )
                     ToolResult(
                         toolName = tool.name,

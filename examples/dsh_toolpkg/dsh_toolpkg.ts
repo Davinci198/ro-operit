@@ -109,14 +109,35 @@
 
 const DSH_DEFAULT_PORT = 3082;
 const DSH_DEFAULT_HOST = '127.0.0.1';
-
+// ==================== Kotlin tool bridge ====================
+// toolCall() resolves with the tool DATA directly (already unwrapped by the JS
+// runtime: on success it returns result.data, on failure it REJECTS with an
+// Error-like object). Normalize it back to the { success, result, error } shape
+// that every wrapper below checks.
+async function callKotlinTool(
+  name: string,
+  params: Record<string, any>
+): Promise<{ success: boolean; result?: any; error?: string }> {
+  try {
+    const data = await toolCall(name, params);
+    return { success: true, result: data };
+  } catch (error) {
+    let msg = 'Unknown error';
+    if (error && typeof error === 'object' && typeof (error as any).message === 'string' && (error as any).message.trim() !== '') {
+      msg = (error as any).message;
+    } else if (typeof error === 'string' && error.trim() !== '') {
+      msg = error;
+    }
+    return { success: false, error: msg };
+  }
+}
 // ==================== TOOL IMPLEMENTATIONS ====================
 
 export async function dsh_start(params: { port?: number; host?: string } = {}) {
   const port = params.port || DSH_DEFAULT_PORT;
   const host = params.host || DSH_DEFAULT_HOST;
 
-  const result = await toolCall('dsh_start', { port, host });
+  const result = await callKotlinTool('dsh_start', { port, host });
 
   if (result?.success) {
     const url = `http://127.0.0.1:${port}`;
@@ -138,7 +159,7 @@ export async function dsh_start(params: { port?: number; host?: string } = {}) {
 }
 
 export async function dsh_stop() {
-  const result = await toolCall('dsh_stop', {});
+  const result = await callKotlinTool('dsh_stop', {});
 
   if (result?.success) {
     complete({
@@ -159,7 +180,7 @@ export async function dsh_stop() {
 }
 
 export async function dsh_status() {
-  const result = await toolCall('dsh_status', {});
+  const result = await callKotlinTool('dsh_status', {});
 
   if (result?.success) {
     const running = result?.result?.includes?.('running') ?? false;
@@ -194,7 +215,7 @@ export async function dsh_run(params: { command: string }) {
     return { success: false, error: 'Command is required' };
   }
 
-  const result = await toolCall('dsh_run', { command });
+  const result = await callKotlinTool('dsh_run', { command });
 
   if (result?.success) {
     const output = result?.result || '';
@@ -217,7 +238,7 @@ export async function dsh_run(params: { command: string }) {
 
 export async function dsh_webview_url() {
   // Call Kotlin dsh_webview_url tool to get URL with token
-  const result = await toolCall('dsh_webview_url', {});
+  const result = await callKotlinTool('dsh_webview_url', {});
 
   if (result?.success) {
     const url = result.result || `http://127.0.0.1:${DSH_DEFAULT_PORT}`;
@@ -240,7 +261,7 @@ export async function dsh_webview_url() {
 
 export async function dsh_install() {
   // Execute npm install in Ubuntu via shell
-  const result = await toolCall('dsh_run', {
+  const result = await callKotlinTool('dsh_run', {
     command: 'npm config set registry https://registry.npmjs.org/ && npm i -g @deepseek-ai/dsh@latest'
   });
 
@@ -278,7 +299,7 @@ export async function dsh_sync(params: { action: string; message?: string }) {
   const toolParams: Record<string, any> = { action };
   if (message) toolParams.message = message;
 
-  const result = await toolCall('dsh_sync', toolParams);
+  const result = await callKotlinTool('dsh_sync', toolParams);
 
   if (result?.success) {
     complete({

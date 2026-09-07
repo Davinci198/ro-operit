@@ -153,10 +153,24 @@ __export(dsh_toolpkg_exports, {
 module.exports = __toCommonJS(dsh_toolpkg_exports);
 var DSH_DEFAULT_PORT = 3082;
 var DSH_DEFAULT_HOST = "127.0.0.1";
+async function callKotlinTool(name, params) {
+  try {
+    const data = await toolCall(name, params);
+    return { success: true, result: data };
+  } catch (error) {
+    let msg = "Unknown error";
+    if (error && typeof error === "object" && typeof error.message === "string" && error.message.trim() !== "") {
+      msg = error.message;
+    } else if (typeof error === "string" && error.trim() !== "") {
+      msg = error;
+    }
+    return { success: false, error: msg };
+  }
+}
 async function dsh_start(params = {}) {
   const port = params.port || DSH_DEFAULT_PORT;
   const host = params.host || DSH_DEFAULT_HOST;
-  const result = await toolCall("dsh_start", { port, host });
+  const result = await callKotlinTool("dsh_start", { port, host });
   if (result == null ? void 0 : result.success) {
     const url = `http://127.0.0.1:${port}`;
     complete({
@@ -176,7 +190,7 @@ async function dsh_start(params = {}) {
   }
 }
 async function dsh_stop() {
-  const result = await toolCall("dsh_stop", {});
+  const result = await callKotlinTool("dsh_stop", {});
   if (result == null ? void 0 : result.success) {
     complete({
       success: true,
@@ -196,7 +210,7 @@ async function dsh_stop() {
 }
 async function dsh_status() {
   var _a, _b, _c;
-  const result = await toolCall("dsh_status", {});
+  const result = await callKotlinTool("dsh_status", {});
   if (result == null ? void 0 : result.success) {
     const running = (_c = (_b = (_a = result == null ? void 0 : result.result) == null ? void 0 : _a.includes) == null ? void 0 : _b.call(_a, "running")) != null ? _c : false;
     const url = running ? `http://127.0.0.1:${DSH_DEFAULT_PORT}` : "not running";
@@ -226,7 +240,7 @@ async function dsh_run(params) {
     });
     return { success: false, error: "Command is required" };
   }
-  const result = await toolCall("dsh_run", { command });
+  const result = await callKotlinTool("dsh_run", { command });
   if (result == null ? void 0 : result.success) {
     const output = (result == null ? void 0 : result.result) || "";
     complete({
@@ -246,7 +260,7 @@ async function dsh_run(params) {
   }
 }
 async function dsh_webview_url() {
-  const result = await toolCall("dsh_webview_url", {});
+  const result = await callKotlinTool("dsh_webview_url", {});
   if (result == null ? void 0 : result.success) {
     const url = result.result || `http://127.0.0.1:${DSH_DEFAULT_PORT}`;
     complete({
@@ -266,7 +280,7 @@ async function dsh_webview_url() {
   }
 }
 async function dsh_install() {
-  const result = await toolCall("dsh_run", {
+  const result = await callKotlinTool("dsh_run", {
     command: "npm config set registry https://registry.npmjs.org/ && npm i -g @deepseek-ai/dsh@latest"
   });
   if (result == null ? void 0 : result.success) {
@@ -299,7 +313,7 @@ async function dsh_sync(params) {
   }
   const toolParams = { action };
   if (message) toolParams.message = message;
-  const result = await toolCall("dsh_sync", toolParams);
+  const result = await callKotlinTool("dsh_sync", toolParams);
   if (result == null ? void 0 : result.success) {
     complete({
       success: true,
