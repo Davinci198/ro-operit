@@ -15,6 +15,7 @@
 .cxx
 local.properties
 node_modules
+cookies.txt
 temp.json
 build
 /app/src/main/jniLibs
