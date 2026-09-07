@@ -105,8 +105,8 @@ class DshBrain private constructor(private val context: Context) {
      * Get DSH home directory from environment
      */
     suspend fun getDshHome(): String {
-        val result = executeInUbuntu("echo \$DSH_HOME")
-        return result.stdout.trim().takeIf { it.isNotBlank() } ?: "/home/dsh/.dsh"
+        val result = executeInUbuntu("echo \"\${DSH_HOME:-\$HOME/.dsh}\"")
+        return result.stdout.trim().takeIf { it.isNotBlank() } ?: "/root/.dsh"
     }
 
     /**
@@ -114,7 +114,9 @@ class DshBrain private constructor(private val context: Context) {
      */
     suspend fun getSyncPaths(context: Context): Pair<String, String> {
         val dshHome = getDshHome()
-        val dshSessionFile = "$dshHome/profiles/web/sessions/$SESSION_ID.json"
+        // Real location inside the Ubuntu container (profiles/web/sessions does not exist;
+        // DSH keeps its data under $dshHome/sessions)
+        val dshSessionFile = "$dshHome/sessions/$SESSION_ID.json"
         val operitSyncFile = "${context.filesDir.absolutePath}/$SYNC_FILE_NAME"
         return Pair(operitSyncFile, dshSessionFile)
     }
