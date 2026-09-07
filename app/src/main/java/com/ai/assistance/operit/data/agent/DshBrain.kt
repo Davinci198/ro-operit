@@ -74,10 +74,38 @@ class DshBrain private constructor(private val context: Context) {
     private var dshSessionFilePath: String = ""
 
     /**
+     * Execute a command inside the Ubuntu container (the same proot Ubuntu used by
+     * super_admin:terminal) and adapt the result to the CommandResult shape used across DshBrain.
+     *
+     * AndroidShellExecutor runs on the Android shell, which has no bash and cannot see
+     * processes/ports/files inside the Ubuntu container, so every DSH command must go through
+     * the terminal hidden exec instead.
+     */
+    internal suspend fun executeInUbuntu(
+        command: String,
+        timeoutMs: Long = 120_000L
+    ): AndroidShellExecutor.CommandResult {
+        return try {
+            val result = com.ai.assistance.operit.core.tools.system.Terminal
+                .getInstance(context)
+                .executeHiddenCommand(command = command, executorKey = "dsh", timeoutMs = timeoutMs)
+            AndroidShellExecutor.CommandResult(
+                success = result.isOk && result.exitCode == 0,
+                stdout = result.output,
+                stderr = if (result.isOk) "" else result.error,
+                exitCode = result.exitCode
+            )
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "executeInUbuntu failed", e)
+            AndroidShellExecutor.CommandResult(false, "", e.message ?: "Ubuntu exec failed", -1)
+        }
+    }
+
+    /**
      * Get DSH home directory from environment
      */
     suspend fun getDshHome(): String {
-        val result = AndroidShellExecutor.executeShellCommand("bash -c 'echo \$DSH_HOME'")
+        val result = executeInUbuntu("echo \$DSH_HOME")
         return result.stdout.trim().takeIf { it.isNotBlank() } ?: "/home/dsh/.dsh"
     }
 
@@ -95,8 +123,8 @@ class DshBrain private constructor(private val context: Context) {
      * Find the actual dsh binary path dynamically - FIXED to check via shell (Ubuntu container)
      */
     private suspend fun findDshBinary(): String? {
-        val result = AndroidShellExecutor.executeShellCommand(
-            "bash -c 'for p in /home/dsh/.npm-global/bin/dsh /root/.npm-global/bin/dsh /usr/local/bin/dsh /home/dsh/.local/bin/dsh; do [ -f \$p ] && echo \$p && exit 0; done; which dsh 2>/dev/null'"
+        val result = executeInUbuntu(
+            "for p in /home/dsh/.npm-global/bin/dsh /root/.npm-global/bin/dsh /usr/local/bin/dsh /home/dsh/.local/bin/dsh; do [ -f \$p ] && echo \$p && exit 0; done; which dsh 2>/dev/null"
         )
         return result.stdout.trim().takeIf { it.isNotBlank() }
     }
@@ -105,8 +133,8 @@ class DshBrain private constructor(private val context: Context) {
      * Find the actual node binary path dynamically (for PATH) - FIXED
      */
     private suspend fun findNodeBinary(): String {
-        val result = AndroidShellExecutor.executeShellCommand(
-            "bash -c 'for p in /home/dsh/.npm-global/bin /root/.npm-global/bin /usr/local/bin; do [ -d \$p ] && echo \$p && exit 0; done; echo /home/dsh/.npm-global/bin'"
+        val result = executeInUbuntu(
+            "for p in /home/dsh/.npm-global/bin /root/.npm-global/bin /usr/local/bin; do [ -d \$p ] && echo \$p && exit 0; done; echo /home/dsh/.npm-global/bin"
         )
         return result.stdout.trim().takeIf { it.isNotBlank() } ?: "/home/dsh/.npm-global/bin"
     }
@@ -163,10 +191,21 @@ class DshBrain private constructor(private val context: Context) {
             val dshHome = getDshHome()
             AppLogger.e(TAG, "isInstalled check: $isInstalled, binary=$dshBinary, home=$dshHome")
 
+            // If dsh web is already responding inside the container, attach to it
+            if (checkHealth(port)) {
+                setupSyncFiles()
+                startSyncObserver()
+                isRunning.set(true)
+                webUrl.set("http://127.0.0.1:$port")
+                AppLogger.i(TAG, "DshBrain attached to already-running dsh web on port $port")
+                return true
+            }
+
             if (!isInstalled) {
                 AppLogger.d(TAG, "dsh not found, installing...")
-                val installResult = AndroidShellExecutor.executeShellCommand(
-                    "bash -c \"npm config set registry https://registry.npmjs.org/ && npm i -g @deepseek-ai/dsh@latest\""
+                val installResult = executeInUbuntu(
+                    "npm config set registry https://registry.npmjs.org/ && npm i -g @deepseek-ai/dsh@latest",
+                    timeoutMs = 600_000L
                 )
                 if (!installResult.success) {
                     AppLogger.e(TAG, "Failed to install dsh: ${installResult.stderr}")
@@ -179,15 +218,25 @@ class DshBrain private constructor(private val context: Context) {
 
             // Build command to start dsh web with --no-open
             // DSH doesn't support --host 0.0.0.0 for safety, use 127.0.0.1 with --trusted-host
-            val command = "DSH_PERMISSION_MODE=danger-full-access $dshBinary web --host 127.0.0.1 --port $port --no-open --trusted-host 127.0.0.1:$port --trusted-host localhost:$port"
-            val fullCommand = "bash -c ${escapeForShell("${buildShellPath()}; $command")}"
+            val dshBin = dshBinary ?: findDshBinary()
+            if (dshBin == null) {
+                AppLogger.e(TAG, "dsh binary not found after install")
+                return false
+            }
+            val command = "DSH_PERMISSION_MODE=danger-full-access $dshBin web --host 127.0.0.1 --port $port --no-open --trusted-host 127.0.0.1:$port --trusted-host localhost:$port"
+            val fullCommand = "${buildShellPath()}; $command"
 
             AppLogger.d(TAG, "Starting dsh web: $fullCommand")
 
-            // Start process directly in Ubuntu (no proot-distro wrapper needed)
-            shellProcess = AndroidShellExecutor.startShellProcess(fullCommand)
+            // Start detached inside the Ubuntu container (same env as super_admin:terminal).
+            // stdout/stderr go to /tmp/dsh.log; getWebUrl() parses the token from that log.
+            executeInUbuntu(
+                "nohup bash -c ${escapeForShell(fullCommand)} > /tmp/dsh.log 2>&1 & echo started",
+                timeoutMs = 30_000L
+            )
+            shellProcess = null
 
-            // Monitor process output for URL with token
+            // Output monitor applies only to attached shell processes (none when detached)
             startOutputMonitor()
 
             // Start sync observer for DSH session file changes
@@ -228,8 +277,8 @@ class DshBrain private constructor(private val context: Context) {
         syncObserverJob?.cancel()
         syncObserverJob = null
 
-        // Kill the dsh process
-        AndroidShellExecutor.executeShellCommand("pkill -f \"dsh web.*${port.get()}\"")
+        // Kill the dsh process inside the Ubuntu container
+        executeInUbuntu("pkill -f \"dsh web.*${port.get()}\" || true", timeoutMs = 20_000L)
 
         shellProcess?.destroy()
         shellProcess = null
@@ -251,12 +300,12 @@ class DshBrain private constructor(private val context: Context) {
         // Fallback check via pgrep and curl
         return@runBlocking try {
             val portNum = port.get()
-            val pgrepCmd = "bash -c 'pgrep -f \"dsh.*web\"'"
-            val pgrepResult = AndroidShellExecutor.executeShellCommand(pgrepCmd)
-            val processRunning = pgrepResult.success && pgrepResult.stdout.trim().isNotBlank()
+            val pgrepCmd = "pgrep -f \"[d]sh.*web\" || true"
+            val pgrepResult = executeInUbuntu(pgrepCmd, timeoutMs = 20_000L)
+            val processRunning = pgrepResult.stdout.trim().isNotBlank()
             if (!processRunning) return@runBlocking false
-            val curlCmd = "bash -c 'curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:${portNum}/'"
-            val curlResult = AndroidShellExecutor.executeShellCommand(curlCmd)
+            val curlCmd = "curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:${portNum}/"
+            val curlResult = executeInUbuntu(curlCmd, timeoutMs = 20_000L)
             val code = curlResult.stdout.trim()
             code in listOf("200", "401", "303")
         } catch (e: Exception) {
@@ -271,10 +320,10 @@ class DshBrain private constructor(private val context: Context) {
         val baseUrl = webUrl.get().takeIf { it.isNotBlank() } ?: "http://127.0.0.1:${port.get()}"
         return try {
             val logResult = runBlocking {
-                AndroidShellExecutor.executeShellCommand("bash -c 'cat /tmp/dsh.log 2>/dev/null | tail -n 200'")
+                executeInUbuntu("tail -n 200 /tmp/dsh.log 2>/dev/null || true", timeoutMs = 20_000L)
             }
-            if (logResult.success && logResult.stdout.isNotBlank()) {
-                val tokenRegex = Regex("token=([A-Za-z0-9]+)")
+            if (logResult.stdout.isNotBlank()) {
+                val tokenRegex = Regex("token=([A-Za-z0-9_-]+)")
                 val match = tokenRegex.find(logResult.stdout)
                 if (match != null) {
                     val token = match.groupValues[1]
@@ -321,9 +370,9 @@ class DshBrain private constructor(private val context: Context) {
             return "DshBrain not running. Call start() first."
         }
 
-        // Execute command directly in Ubuntu
-        val fullCommand = "bash -c ${escapeForShell("${buildShellPath()}; $command")}"
-        val result = AndroidShellExecutor.executeShellCommand(fullCommand)
+        // Execute command directly in Ubuntu container
+        val fullCommand = "${buildShellPath()}; $command"
+        val result = executeInUbuntu(fullCommand)
 
         return if (result.success) {
             result.stdout
@@ -409,8 +458,8 @@ class DshBrain private constructor(private val context: Context) {
 
         // Create dsh profiles directory and bind mount via symlink
         val dshProfilesDir = dshSessionFilePath.substringBeforeLast("/")
-        val createDirsCmd = "bash -c ${escapeForShell("mkdir -p $dshProfilesDir && mkdir -p /root && ln -sf $operitSyncFilePath /root/dsh_operit_sync.json")}"
-        AndroidShellExecutor.executeShellCommand(createDirsCmd)
+        val createDirsCmd = "mkdir -p $dshProfilesDir && mkdir -p /root && ln -sf $operitSyncFilePath /root/dsh_operit_sync.json"
+        executeInUbuntu(createDirsCmd, timeoutMs = 30_000L)
 
         // Initialize sync file if not exists
         val initSync = """
@@ -451,8 +500,8 @@ class DshBrain private constructor(private val context: Context) {
         syncObserverJob = scope.launch {
             try {
                 // First, ensure the session file exists
-                val checkCmd = "bash -c ${escapeForShell("test -f $dshSessionFilePath && echo EXISTS || echo MISSING")}"
-                val checkResult = AndroidShellExecutor.executeShellCommand(checkCmd)
+                val checkCmd = "test -f $dshSessionFilePath && echo EXISTS || echo MISSING"
+                val checkResult = executeInUbuntu(checkCmd, timeoutMs = 20_000L)
                 if (checkResult.stdout.trim() == "MISSING") {
                     // Create empty session file
                     val initSession = """
@@ -463,8 +512,8 @@ class DshBrain private constructor(private val context: Context) {
                           "updated_at": ${System.currentTimeMillis()}
                         }
                     """.trimIndent()
-                    val writeCmd = "bash -c ${escapeForShell("cat > $dshSessionFilePath << 'EOF'\n$initSession\nEOF")}"
-                    AndroidShellExecutor.executeShellCommand(writeCmd)
+                    val writeCmd = "cat > $dshSessionFilePath << 'EOF'\n$initSession\nEOF"
+                    executeInUbuntu(writeCmd, timeoutMs = 20_000L)
                 }
 
                 // Use a polling approach since FileObserver doesn't work across container boundaries
@@ -481,8 +530,8 @@ class DshBrain private constructor(private val context: Context) {
     /** Poll DSH session file for new messages from DSH Web UI */
     private suspend fun pollDshSessionForNewMessages() {
         try {
-            val readCmd = "bash -c ${escapeForShell("cat $dshSessionFilePath")}"
-            val result = AndroidShellExecutor.executeShellCommand(readCmd)
+            val readCmd = "cat $dshSessionFilePath"
+            val result = executeInUbuntu(readCmd, timeoutMs = 20_000L)
             if (result.success && result.stdout.isNotBlank()) {
                 val sessionJson = JSONObject(result.stdout)
                 val messages = sessionJson.optJSONArray("messages")
@@ -542,8 +591,8 @@ class DshBrain private constructor(private val context: Context) {
             FileWriter(syncFile).use { it.write(json.toString(2)) }
 
             // Also write to sync file via symlink
-            val writeProotCmd = "bash -c ${escapeForShell("cat > /root/dsh_operit_sync.json << 'EOF'\n${json.toString(2)}\nEOF")}"
-            AndroidShellExecutor.executeShellCommand(writeProotCmd)
+            val writeProotCmd = "cat > /root/dsh_operit_sync.json << 'EOF'\n${json.toString(2)}\nEOF"
+            executeInUbuntu(writeProotCmd, timeoutMs = 20_000L)
 
             return true
         } catch (e: Exception) {
@@ -555,8 +604,8 @@ class DshBrain private constructor(private val context: Context) {
     /** Append message to DSH session file */
     private suspend fun appendToDshSession(syncMessage: SyncMessage): Boolean {
         try {
-            val readCmd = "bash -c ${escapeForShell("cat $dshSessionFilePath")}"
-            val readResult = AndroidShellExecutor.executeShellCommand(readCmd)
+            val readCmd = "cat $dshSessionFilePath"
+            val readResult = executeInUbuntu(readCmd, timeoutMs = 20_000L)
             val sessionJson = if (readResult.success && readResult.stdout.isNotBlank()) {
                 JSONObject(readResult.stdout)
             } else {
@@ -576,8 +625,8 @@ class DshBrain private constructor(private val context: Context) {
             sessionJson.put("messages", messages)
             sessionJson.put("updated_at", System.currentTimeMillis())
 
-            val writeCmd = "bash -c ${escapeForShell("cat > $dshSessionFilePath << 'EOF'\n${sessionJson.toString(2)}\nEOF")}"
-            val writeResult = AndroidShellExecutor.executeShellCommand(writeCmd)
+            val writeCmd = "cat > $dshSessionFilePath << 'EOF'\n${sessionJson.toString(2)}\nEOF"
+            val writeResult = executeInUbuntu(writeCmd, timeoutMs = 20_000L)
             return writeResult.success
         } catch (e: Exception) {
             AppLogger.e(TAG, "Failed to append to DSH session", e)
@@ -599,15 +648,16 @@ class DshBrain private constructor(private val context: Context) {
         } catch (e: Exception) {
             // If /api/health doesn't exist, try root with pgrep and curl fallback
             try {
-                // Check process via pgrep
-                val pgrepCmd = "bash -c 'pgrep -f \"dsh.*web\"'"
-                val pgrepResult = AndroidShellExecutor.executeShellCommand(pgrepCmd)
+                // Check process via pgrep inside the Ubuntu container
+                val pgrepResult = executeInUbuntu("pgrep -f \"dsh.*web\"", timeoutMs = 8_000L)
                 val processRunning = pgrepResult.success && pgrepResult.stdout.trim().isNotBlank()
                 if (processRunning) return true
 
-                // Try curl for HTTP code
-                val cmd = "bash -c 'curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:${port}/'"
-                val curlResult = AndroidShellExecutor.executeShellCommand(cmd)
+                // Try curl for HTTP code inside the Ubuntu container
+                val curlResult = executeInUbuntu(
+                    "curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:${port}/",
+                    timeoutMs = 8_000L
+                )
                 val code = curlResult.stdout.trim()
                 if (code in listOf("200", "401", "303")) return true
 
@@ -741,9 +791,9 @@ class DshStopToolExecutor(private val context: Context) : ToolExecutor {
             val brain = DshBrain.getInstance(context)
             val success = brain.stop()
 
-            // Also try to kill any remaining dsh web processes directly in Ubuntu
+            // Also try to kill any remaining dsh web processes directly inside the Ubuntu container
             try {
-                AndroidShellExecutor.executeShellCommand("bash -c \"pkill -f 'dsh web' || true\"")
+                brain.executeInUbuntu("pkill -f 'dsh web' || true", timeoutMs = 8_000L)
             } catch (e: Exception) {
                 // Ignore
             }
@@ -771,21 +821,23 @@ class DshStatusToolExecutor(private val context: Context) : ToolExecutor {
             val brain = DshBrain.getInstance(context)
             val internalRunning = brain.isRunning()
 
-            // Check if dsh web process is running via pgrep
+            // Check if dsh web process is running via pgrep inside the Ubuntu container
             val port = brain.getWebUrl().substringAfterLast(":").toIntOrNull() ?: 3082
             val processRunning = try {
-                val pgrepResult = AndroidShellExecutor.executeShellCommand(
-                    "bash -c 'pgrep -f \"dsh.*web\"'"
+                val pgrepResult = brain.executeInUbuntu(
+                    "pgrep -f \"dsh.*web\" || true",
+                    timeoutMs = 8_000L
                 )
                 pgrepResult.success && pgrepResult.stdout.trim().isNotBlank()
             } catch (e: Exception) {
                 false
             }
 
-            // Check HTTP response code via curl
+            // Check HTTP response code via curl inside the Ubuntu container
             val httpCodeRunning = try {
-                val curlResult = AndroidShellExecutor.executeShellCommand(
-                    "bash -c 'curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:$port/'"
+                val curlResult = brain.executeInUbuntu(
+                    "curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:$port/",
+                    timeoutMs = 8_000L
                 )
                 val code = curlResult.stdout.trim()
                 code in listOf("200", "401", "303")
@@ -827,8 +879,9 @@ class DshSyncToolExecutor(private val context: Context) : ToolExecutor {
                     val internalRunning = brain.isRunning()
                     val port = brain.getWebUrl().substringAfterLast(":").toIntOrNull() ?: 3082
                     val actuallyRunning = try {
-                        val result = AndroidShellExecutor.executeShellCommand(
-                            "bash -c \"curl -s -m 3 http://127.0.0.1:$port/ | head -c 100\""
+                        val result = brain.executeInUbuntu(
+                            "curl -s -m 3 http://127.0.0.1:$port/ | head -c 100",
+                            timeoutMs = 8_000L
                         )
                         result.success && result.stdout.isNotBlank()
                     } catch (e: Exception) {
