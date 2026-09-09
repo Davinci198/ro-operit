@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.ai.assistance.showerclient"
     compileSdk = 36
+    buildToolsVersion = "35.0.0"
 
     defaultConfig {
         minSdk = 26

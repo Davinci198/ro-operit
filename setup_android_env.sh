@@ -708,7 +708,7 @@ ensure_ndk_arm64_toolchain() {
   local llvm_bin="/usr/lib/llvm-18/bin"
   if [[ ! -d "$llvm_bin" ]]; then
     log "LLVM 18 not found; installing llvm-18 lld-18"
-    install_packages llvm-18 lld-18
+    install_packages llvm-17 lld-17 || true
   fi
   local sudo_cmd=""
   if command_exists sudo; then

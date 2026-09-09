@@ -98,6 +98,34 @@ function parseSseBlock(block: string): WebChatStreamEvent | null {
 }
 
 export async function bootstrap(token: string): Promise<WebBootstrapResponse> {
+  // Prefer the DSH boot manifest if it is present (window.__DSH_BOOT__).
+  // This mirrors the DeepSeek Harness behaviour where the manifest is injected
+  // into the page.  When the manifest exists we return a minimal bootstrap
+  // response that satisfies the UI expectations.  If it is absent we fall back
+  // to the original HTTP endpoint.
+  const boot = (window as any).__DSH_BOOT__ as any;
+  if (boot && Array.isArray(boot.entries) && boot.entries.length > 0) {
+    // The Operit‑chat UI only reads a handful of fields from the response.
+    // Provide sensible defaults; the exact values are not critical for the
+    // demo but must match the WebBootstrapResponse type.
+    return {
+      version_name: "0.0.0",
+      current_chat_id: null,
+      default_chat_style: "bubble",
+      default_input_style: "classic",
+      show_thinking_process: true,
+      show_status_tags: true,
+      show_input_processing_status: true,
+      capabilities: {
+        attachments: true,
+        per_chat_theme: true,
+        structured_render: true,
+        streaming: true,
+        rename_chat: true,
+        delete_chat: true,
+      },
+    };
+  }
   return requestJson<WebBootstrapResponse>('/api/web/bootstrap', token);
 }
 

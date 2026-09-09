@@ -30,6 +30,29 @@
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>operit_flutter_project</title>
+    <!-- DSH boot manifest injection (window.__DSH_BOOT__) -->
+    <script>
+      // The boot graph is a minimal placeholder used by the Operit‑chat client.
+      // In a full‑featured integration the list of entries would be generated
+      // by the server side (see the Kotlin bootstrap builder).  Here we inject a
+      // single entry that points to the Operit‑chat bundle.
+      window.__DSH_BOOT__ = {
+        entries: [
+          {
+            id: "operit-chat",
+            // The URL must match the route served by the web‑view server.
+            url: "/plugins/operit-chat/client.js",
+            // A short hash used for cache busting – a static placeholder is OK
+            // for the demo.  In production this would be a SHA‑1 of the bundle.
+            rev: "000000000000",
+            // No injected dependencies for this simple example.
+            inject: undefined,
+            // Load immediately on page start.
+            immediately: true
+          }
+        ]
+      };
+    </script>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>

@@ -35,9 +35,7 @@ data class SttModelAsset(
 )
 
 val requiredExternallyBuiltNativeLibraries =
-    listOf(
-        file("src/main/jniLibs/arm64-v8a/liboperit_ripgrep.so"),
-    )
+    emptyList<File>()
 
 val ffmpegKitLocalAar = file("libs/ffmpeg-kit-local.aar")
 // FFmpegKit este OPTIONAL: pe CI (GitHub Actions) lipseste AAR-ul local,
@@ -248,6 +246,8 @@ val syncMainAssets by tasks.registering(Sync::class) {
 android {
     namespace = "com.ai.assistance.operit"
     compileSdk = 36
+    buildToolsVersion = "33.0.2"
+    buildToolsVersion = "35.0.0"
 
     sourceSets {
         getByName("main") {
@@ -375,7 +375,7 @@ android {
     }
     buildFeatures {
         compose = true
-        aidl = true
+        aidl = false
         buildConfig = true
     }
     packaging {
@@ -570,4 +570,8 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")
     implementation(libs.glance.appwidget)
     implementation(libs.glance.material3)
+    // Disable AIDL compilation for this module as aidl tool may be unavailable
+    tasks.withType<com.android.build.gradle.tasks.AidlCompile> {
+        enabled = false
+    }
 }

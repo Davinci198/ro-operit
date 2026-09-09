@@ -20,48 +20,49 @@ set -e
 
 echo "=== FIX NDK 27 ARM64 FINAL ==="
 
-NDK_ROOT=/opt/android-sdk/ndk/27.0.12077973
+NDK_ROOT=$HOME/Android/ndk/27.0.12077973
 NDK_BIN=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin
 LLVM_BIN=/usr/lib/llvm-18/bin
+if [[ ! -d "$LLVM_BIN" ]]; then LLVM_BIN="/usr/lib/llvm-17/bin"; fi
 SYSROOT=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/sysroot
-BT_DIR=/opt/android-sdk/build-tools/36.0.0
+BT_DIR=$ANDROID_HOME/build-tools/36.0.0
 
 # ------------------------------------------------------------
 # [1/9] Dependinte ARM64 native
 # ------------------------------------------------------------
 echo "[1/9] Instalare llvm-18, lld-18, cmake, ninja, qemu-user..."
-sudo apt update
-sudo apt install -y llvm-18 lld-18 cmake ninja-build qemu-user aapt
+apt update
+apt install -y cmake ninja-build qemu-user aapt || true
 
 # ------------------------------------------------------------
 # [2/9] Fix ld, ld.lld, lld -> ARM64 nativ (LLVM 18.1.3 via symlink)
 # ------------------------------------------------------------
 echo "[2/9] Fix linker-e x86-64 -> ARM64 nativ..."
-sudo ln -sf /usr/bin/ld.lld $NDK_BIN/ld.lld
-sudo ln -sf /usr/bin/ld.lld $NDK_BIN/ld
-sudo ln -sf /usr/bin/lld $NDK_BIN/lld || true
-sudo chmod +x $NDK_BIN/ld* $NDK_BIN/lld* 2>/dev/null || true
+ln -sf /usr/bin/ld.lld $NDK_BIN/ld.lld
+ln -sf /usr/bin/ld.lld $NDK_BIN/ld
+ln -sf /usr/bin/lld $NDK_BIN/lld || true
+chmod +x $NDK_BIN/ld* $NDK_BIN/lld* 2>/dev/null || true
 
 # ------------------------------------------------------------
 # [3/9] Fix llvm-ar / llvm-ranlib -> ARM64 nativ (LLVM 18.1.3)
 #   Rezolva: --record-libdeps (flag LLVM vs GNU ar)
 # ------------------------------------------------------------
 echo "[3/9] Fix llvm-ar / llvm-ranlib / llvm-strip -> ARM64 nativ..."
-sudo ln -sf $LLVM_BIN/llvm-ar $NDK_BIN/llvm-ar
-sudo ln -sf $LLVM_BIN/llvm-ranlib $NDK_BIN/llvm-ranlib
-sudo ln -sf $LLVM_BIN/llvm-strip $NDK_BIN/llvm-strip || true
-sudo chmod +x $NDK_BIN/llvm-ar $NDK_BIN/llvm-ranlib $NDK_BIN/llvm-strip 2>/dev/null || true
+ln -sf $LLVM_BIN/llvm-ar $NDK_BIN/llvm-ar
+ln -sf $LLVM_BIN/llvm-ranlib $NDK_BIN/llvm-ranlib
+ln -sf $LLVM_BIN/llvm-strip $NDK_BIN/llvm-strip || true
+chmod +x $NDK_BIN/llvm-ar $NDK_BIN/llvm-ranlib $NDK_BIN/llvm-strip 2>/dev/null || true
 
 # Verificare arhitectura
-file $NDK_BIN/ld.lld
-file $NDK_BIN/llvm-ar
+# file $NDK_BIN/ld.lld
+# file $NDK_BIN/llvm-ar
 
 # ------------------------------------------------------------
 # [4/9] cmake 3.28 + ninja 1.11.1 ARM64 (symlink la versiunile apt)
 # ------------------------------------------------------------
 echo "[4/9] Fix cmake 3.28 si ninja 1.11.1 ARM64..."
-which cmake && sudo ln -sf $(which cmake) /usr/local/bin/cmake || true
-which ninja && sudo ln -sf $(which ninja) /usr/local/bin/ninja || true
+which cmake && ln -sf $(which cmake) /usr/local/bin/cmake || true
+which ninja && ln -sf $(which ninja) /usr/local/bin/ninja || true
 cmake --version
 ninja --version
 
@@ -87,21 +88,21 @@ done
 #   build-tools 36.0.0 vine cu aapt2 x86-64; pe ARM64 nu porneste
 #   Compilam un wrapper C ARM64 care executa binarul x86-64
 #   prin qemu-user. Gradle il foloseste via:
-#     android.aapt2FromMavenOverride=/opt/aapt2-custom/aapt2
+#     android.aapt2FromMavenOverride=$HOME/.opt/aapt2-custom/aapt2
 # ------------------------------------------------------------
 echo "[6/9] Fix AAPT2: wrapper C + qemu-x86_64..."
 AAPT2_X86=$BT_DIR/aapt2
 if [ -f "$AAPT2_X86" ] && file "$AAPT2_X86" | grep -q "x86-64"; then
   echo "  aapt2 x86-64 gasit: $AAPT2_X86"
-  sudo mkdir -p /opt/aapt2-custom
-  sudo cp "$AAPT2_X86" /opt/aapt2-custom/aapt2.x86_64
+  sudo mkdir -p $HOME/.opt/aapt2-custom
+  cp "$AAPT2_X86" $HOME/.opt/aapt2-custom/aapt2.x86_64
   cat > /tmp/aapt2_wrap.c << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 int main(int argc, char **argv) {
-    const char *bin = "/opt/aapt2-custom/aapt2.x86_64";
+    const char *bin = "$HOME/.opt/aapt2-custom/aapt2.x86_64";
     char **args = malloc((argc + 3) * sizeof(char *));
     int n = 0;
     args[n++] = "qemu-x86_64";
@@ -114,12 +115,12 @@ int main(int argc, char **argv) {
 }
 EOF
   gcc -O2 -o /tmp/aapt2_wrap /tmp/aapt2_wrap.c
-  sudo cp /tmp/aapt2_wrap /opt/aapt2-custom/aapt2
-  sudo chmod +x /opt/aapt2-custom/aapt2 /opt/aapt2-custom/aapt2.x86_64
+  cp /tmp/aapt2_wrap $HOME/.opt/aapt2-custom/aapt2
+  chmod +x $HOME/.opt/aapt2-custom/aapt2 $HOME/.opt/aapt2-custom/aapt2.x86_64
   rm -f /tmp/aapt2_wrap /tmp/aapt2_wrap.c
-  echo "  Wrapper creat: /opt/aapt2-custom/aapt2 (ARM64)"
+  echo "  Wrapper creat: $HOME/.opt/aapt2-custom/aapt2 (ARM64)"
   echo "  Adauga in gradle.properties:"
-  echo "    android.aapt2FromMavenOverride=/opt/aapt2-custom/aapt2"
+  echo "    android.aapt2FromMavenOverride=$HOME/.opt/aapt2-custom/aapt2"
 else
   echo "  AAPT2 deja fixat sau absenta - skip"
 fi
@@ -142,7 +143,7 @@ if [ -f "$AIDL_X86" ]; then
 #include <stdlib.h>
 #include <unistd.h>
 int main(int argc, char **argv) {
-    const char *bin = "/opt/android-sdk/build-tools/36.0.0/aidl.orig";
+    const char *bin = "$BT_DIR/aidl.orig";
     char **args = malloc((argc + 3) * sizeof(char *));
     int n = 0;
     args[n++] = "qemu-x86_64";
@@ -155,8 +156,8 @@ int main(int argc, char **argv) {
 }
 EOF
   gcc -O2 -o /tmp/aidl_wrap /tmp/aidl_wrap.c
-  sudo cp /tmp/aidl_wrap "$AIDL_X86"
-  sudo chmod +x "$AIDL_X86"
+  cp /tmp/aidl_wrap "$AIDL_X86"
+  chmod +x "$AIDL_X86"
   rm -f /tmp/aidl_wrap /tmp/aidl_wrap.c
   echo "  Wrapper creat: $AIDL_X86 (ARM64)"
 fi
