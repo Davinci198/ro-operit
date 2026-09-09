@@ -276,11 +276,11 @@ android {
         }
     }
 
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-        }
-    }
+    // DISABLED externalNativeBuild {
+    //         cmake {
+    //             // DISABLED path = file("src/main/cpp/CMakeLists.txt")
+    //         }
+    // DISABLED }
 
     defaultConfig {
         applicationId = "com.ai.assistance.operit"
@@ -298,11 +298,11 @@ android {
             abiFilters.addAll(listOf("arm64-v8a"))
         }
 
-        externalNativeBuild {
-            cmake {
-                cppFlags("-std=c++17")
-            }
-        }
+        // DISABLED externalNativeBuild {
+    //             cmake {
+    //                 cppFlags("-std=c++17")
+    //             }
+    // DISABLED }
 
     }
     flavorDimensions += "dist"

@@ -20,16 +20,7 @@ android {
             abiFilters.addAll(listOf("arm64-v8a"))
         }
 
-        externalNativeBuild {
-            cmake {
-                cppFlags += listOf("-std=c++17")
-                arguments += listOf(
-                    "-DANDROID_STL=c++_static",
-                    "-DANDROID_PLATFORM=android-26",
-                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
-                )
-            }
-        }
+        // externalNativeBuild disabled
     }
 
     buildTypes {
@@ -38,12 +29,8 @@ android {
         }
     }
 
-    externalNativeBuild {
-        cmake {
-            path = file("CMakeLists.txt")
-            version = "3.22.1"
-        }
-    }
+    // externalNativeBuild disabled
+    // cmake { version = "3.22.1" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

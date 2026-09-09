@@ -20,17 +20,17 @@ android {
             abiFilters.addAll(listOf("arm64-v8a"))
         }
 
-        externalNativeBuild {
-            cmake {
-                cppFlags += listOf("-std=c++17", "-fno-emulated-tls")
-                arguments += listOf(
-                    "-DANDROID_STL=c++_static",
-                    "-DANDROID_PLATFORM=android-26",
-                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
-                    "-DLLAMA_BUILD_COMMON=ON"
-                )
-            }
-        }
+        // DISABLED externalNativeBuild {
+    //             cmake {
+    //                 cppFlags += listOf("-std=c++17", "-fno-emulated-tls")
+    //                 arguments += listOf(
+    //                     "-DANDROID_STL=c++_static",
+    //                     "-DANDROID_PLATFORM=android-26",
+    //                     "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
+    //                     "-DLLAMA_BUILD_COMMON=ON"
+    //                 )
+    //             }
+    // DISABLED }
     }
 
     buildTypes {
@@ -39,12 +39,12 @@ android {
         }
     }
 
-    externalNativeBuild {
-        cmake {
-            path = file("CMakeLists.txt")
-            version = "3.22.1"
-        }
-    }
+    // DISABLED externalNativeBuild {
+    //         cmake {
+    //             // DISABLED path = file("CMakeLists.txt")
+    //             version = "3.22.1"
+    //         }
+    // DISABLED }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

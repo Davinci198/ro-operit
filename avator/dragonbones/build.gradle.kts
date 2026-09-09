@@ -16,11 +16,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        externalNativeBuild {
-            cmake {
-                arguments += listOf("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
-            }
-        }
+        // DISABLED externalNativeBuild {
+    //             cmake {
+    //                 arguments += listOf("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
+    //             }
+    // DISABLED }
     }
 
     buildTypes {
@@ -41,12 +41,12 @@ android {
     }
     sourceSets["main"].manifest.srcFile("src/main/AndroidManifest.xml")
 
-    externalNativeBuild {
-        cmake {
-            path = file("CMakeLists.txt")
-            version = "3.22.1"
-        }
-    }
+    // DISABLED externalNativeBuild {
+    //         cmake {
+    //             // DISABLED path = file("CMakeLists.txt")
+    //             version = "3.22.1"
+    //         }
+    // DISABLED }
 }
 
 kotlin {
