@@ -2,10 +2,12 @@
 {
   "name": "dsh_toolpkg",
   "display_name": {
+    "ro": "DeepSeek Harness (DSH) — Panou de control",
     "zh": "DeepSeek Harness (DSH) 控制面板",
     "en": "DeepSeek Harness (DSH) Control Panel"
   },
   "description": {
+    "ro": "Gestionează sesiunile DeepSeek Harness în RO-Operit. Pornește/oprește serverul DSH Web, verifică starea, execută comenzi în containerul Ubuntu și accesează interfața completă DSH prin WebView integrat.",
     "zh": "在 RO-Operit 中管理 DeepSeek Harness 会话。启动/停止 DSH Web 服务器，查看状态，在 Ubuntu 容器中执行命令，并通过内嵌 WebView 访问完整的 DSH 界面。",
     "en": "Manage DeepSeek Harness sessions in RO-Operit. Start/stop DSH web server, check status, execute commands in Ubuntu container, and access full DSH UI via embedded WebView."
   },
@@ -212,8 +214,10 @@ async function dsh_status() {
   var _a, _b, _c;
   const result = await callKotlinTool("dsh_status", {});
   if (result == null ? void 0 : result.success) {
-    const running = (_c = (_b = (_a = result == null ? void 0 : result.result) == null ? void 0 : _a.includes) == null ? void 0 : _b.call(_a, "running")) != null ? _c : false;
-    const url = running ? `http://127.0.0.1:${DSH_DEFAULT_PORT}` : "not running";
+    const statusText = String(result && result.result != null ? result.result : "");
+    const running = statusText.includes("status: running");
+    const urlMatch = statusText.match(/\bat\s+(https?:\/\/\S+)/);
+    const url = running ? urlMatch ? urlMatch[1] : `http://127.0.0.1:${DSH_DEFAULT_PORT}` : "not running";
     complete({
       success: true,
       message: running ? `\u2705 DSH \u8FD0\u884C\u4E2D: ${url}` : "\u23F9\uFE0F DSH \u672A\u8FD0\u884C",

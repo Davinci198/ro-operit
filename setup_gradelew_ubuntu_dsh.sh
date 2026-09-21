@@ -18,11 +18,18 @@ echo "dummy" > "$REPO_ROOT/app/src/main/jniLibs/arm64-v8a/liboperit_ripgrep.so"
 echo "[3] local.properties..."
 echo "sdk.dir=$ANDROID_HOME" > "$REPO_ROOT/local.properties"
 echo "[4] gradle.properties (4GB + AAPT2)..."
-echo "org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=1024m" >> "$REPO_ROOT/gradle.properties" 2>/dev/null || true
-echo "kotlin.daemon.jvmargs=-Xmx3072m -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=768m" >> "$REPO_ROOT/gradle.properties" 2>/dev/null || true
-echo "org.gradle.workers.max=2" >> "$REPO_ROOT/gradle.properties" 2>/dev/null || true
-echo "android.aapt2.process.daemon=false" >> "$REPO_ROOT/gradle.properties" 2>/dev/null || true
-echo "android.aapt2FromMavenOverride=/opt/aapt2-custom/aapt2" >> "$REPO_ROOT/gradle.properties" 2>/dev/null || true
+# Scriere idempotenta: set -e ar opri scriptul daca grep nu gaseste liniile, deci "|| true" e obligatoriu.
+# Liniile care nu exista se adauga; liniile existente nu se dubleaza.
+grep -q "^org.gradle.jvmargs=" "$REPO_ROOT/gradle.properties" 2>/dev/null || \
+    echo "org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=1024m" >> "$REPO_ROOT/gradle.properties"
+grep -q "^kotlin.daemon.jvmargs=" "$REPO_ROOT/gradle.properties" 2>/dev/null || \
+    echo "kotlin.daemon.jvmargs=-Xmx3072m -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=768m" >> "$REPO_ROOT/gradle.properties"
+grep -q "^org.gradle.workers.max=" "$REPO_ROOT/gradle.properties" 2>/dev/null || \
+    echo "org.gradle.workers.max=2" >> "$REPO_ROOT/gradle.properties"
+grep -q "^android.aapt2.process.daemon=" "$REPO_ROOT/gradle.properties" 2>/dev/null || \
+    echo "android.aapt2.process.daemon=false" >> "$REPO_ROOT/gradle.properties"
+grep -q "^android.aapt2FromMavenOverride=" "$REPO_ROOT/gradle.properties" 2>/dev/null || \
+    echo "android.aapt2FromMavenOverride=/opt/aapt2-custom/aapt2" >> "$REPO_ROOT/gradle.properties"
 echo "[5] Branch cleanup (main only)..."
 git checkout main 2>/dev/null || true
 git branch | grep -v '^\* main$' | grep -v '^  main$' | xargs -r git branch -D 2>/dev/null || true

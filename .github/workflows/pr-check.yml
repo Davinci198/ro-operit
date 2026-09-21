@@ -252,12 +252,14 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Set up Android SDK
+      - name: Use preinstalled Android SDK cmdline-tools
         if: >-
           steps.plan.outputs.android_resources == 'true' ||
           steps.plan.outputs.android_jvm == 'true' ||
           steps.plan.outputs.android_full == 'true'
-        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+        run: echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+        # setup-android@v4 trage cmdline-tools 20.0 (preview) al carui sdkmanager --licenses pica
+        # la promptul interactiv pe ubuntu-24.04; runnerul are deja cmdline-tools/latest in SDK
 
       - name: Install required Android toolchain
         if: >-
