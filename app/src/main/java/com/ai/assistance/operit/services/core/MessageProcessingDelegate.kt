@@ -1419,6 +1419,17 @@ class MessageProcessingDelegate(
                 }
                 aiMessage = aiMessage.copy(completedAt = System.currentTimeMillis())
 
+                // Forward the completed AI reply to the DSH session (no-op if DSH
+                // is not running) so the DSH Web UI sees the full conversation.
+                if (aiMessage.content.isNotBlank()) {
+                    DshChatSyncBridge.onOutgoingAiMessage(
+                        context,
+                        chatId,
+                        currentRoleName,
+                        aiMessage.content
+                    )
+                }
+
                 if (isWaifuModeEnabled) {
                     syncWaifuMessageMetricsHandler?.invoke(aiMessage)
                 }

@@ -48,16 +48,29 @@ object DshChatSyncBridge {
      * Called from MessageProcessingDelegate after the user message is persisted.
      */
     fun onOutgoingChatMessage(context: Context, chatId: String, content: String) {
+        forwardToDsh(context, chatId, content, "user")
+    }
+
+    /**
+     * Outbound hook: forward the completed AI reply to the DSH session so the
+     * DSH Web UI sees the full conversation (user + assistant turns).
+     * Called from MessageProcessingDelegate when the AI turn completes successfully.
+     */
+    fun onOutgoingAiMessage(context: Context, chatId: String, roleName: String, content: String) {
+        forwardToDsh(context, chatId, content, "assistant")
+    }
+
+    private fun forwardToDsh(context: Context, chatId: String, content: String, role: String) {
         if (content.isBlank()) return
         val brain = DshBrain.getInstance(context)
         if (!brain.isActive()) return
 
-        AppLogger.d(TAG, "Forwarding user message to DSH (chatId=$chatId, len=${content.length})")
+        AppLogger.d(TAG, "Forwarding $role message to DSH (chatId=$chatId, len=${content.length})")
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
             try {
-                val ok = brain.syncMessage(SOURCE_OPERIT_DEV_CHAT, content, "user")
+                val ok = brain.syncMessage(SOURCE_OPERIT_DEV_CHAT, content, role)
                 if (!ok) {
-                    AppLogger.w(TAG, "Failed to forward user message to DSH")
+                    AppLogger.w(TAG, "Failed to forward $role message to DSH")
                 }
             } catch (e: Exception) {
                 AppLogger.e(TAG, "DSH outbound sync error", e)
