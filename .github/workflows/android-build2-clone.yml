@@ -139,8 +139,7 @@ jobs:
           rustup target add --toolchain 1.88.0 aarch64-linux-android || true
           cargo +1.88.0 build --manifest-path tools/native_ripgrep/Cargo.toml --release --target aarch64-linux-android --locked
           install -Dm755 tools/native_ripgrep/target/aarch64-linux-android/release/liboperit_ripgrep.so app/src/main/jniLibs/arm64-v8a/liboperit_ripgrep.so
-          # shellcheck disable=SC2012 — calea este fixă și controlată de build, nu vine din input extern
-          ls -lh app/src/main/jniLibs/arm64-v8a/liboperit_ripgrep.so
+          stat -c "%n %s bytes" app/src/main/jniLibs/arm64-v8a/liboperit_ripgrep.so
 
       - name: FIX DEFINITIV QWEN3 - patch mnn build.gradle.kts (UN SINGUR STEP VERIFICAT)
         run: |
@@ -301,8 +300,7 @@ jobs:
             exit 1
           fi
           echo "BUILD SUCCESSFUL"
-          # shellcheck disable=SC2012 — dezasamblare informativă a listei de APK; -print0/-exec nu ajută aici
-          find app/build/outputs -name "*.apk" -type f | xargs ls -lh
+          find app/build/outputs -name "*.apk" -type f -exec ls -lh {} +
 
       - name: Verify APK signature
         shell: bash
