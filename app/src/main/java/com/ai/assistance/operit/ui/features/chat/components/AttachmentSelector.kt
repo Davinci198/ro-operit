@@ -56,6 +56,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -852,12 +853,13 @@ private fun buildAttachmentPackageOptions(
     return options.values.toList()
 }
 
+@Composable
 private fun buildAttachmentPackageSubtitle(option: AttachmentPackageOption): String {
     val typeLabel =
             when (option.kind) {
-                AttachmentPackageKind.PACKAGE -> "包"
-                AttachmentPackageKind.SKILL -> "技能"
-                AttachmentPackageKind.MCP -> "MCP"
+                AttachmentPackageKind.PACKAGE -> stringResource(R.string.attachment_kind_package)
+                AttachmentPackageKind.SKILL -> stringResource(R.string.attachment_kind_skill)
+                AttachmentPackageKind.MCP -> stringResource(R.string.attachment_kind_mcp)
             }
     return if (option.description.isBlank()) {
         typeLabel

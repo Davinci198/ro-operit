@@ -8021,4 +8021,20 @@ Vă rugăm să sprijiniți autorul original și să fiți atenți la revânzare.
     <string name="user_configuration_rename">Redenumirea configurației utilizatorului</string>
     <string name="user_configuration_select">Selectați configurația utilizatorului</string>
     <string name="user_configuration_unlock_notice">Această configurație a fost migrată din setările de blocare ale versiunii vechi; după salvare, blocarea întregii fișe de date va fi eliminată.</string>
+
+    <!-- Editor context menu / attachment & mention labels / misc UI (extracted) -->
+    <string name="editor_menu_copy">Copiază</string>
+    <string name="editor_menu_cut">Taie</string>
+    <string name="editor_menu_paste">Lipește</string>
+    <string name="editor_menu_select_all">Selectează tot</string>
+    <string name="attachment_kind_package">Pachet</string>
+    <string name="attachment_kind_skill">Skill</string>
+    <string name="attachment_kind_mcp">MCP</string>
+    <string name="mention_kind_package">Pachet tool</string>
+    <string name="mention_kind_skill">Pachet Skill</string>
+    <string name="mention_kind_mcp">Pachet MCP</string>
+    <string name="toolpkg_error_open_selected_file">Nu se poate deschide fișierul selectat</string>
+    <string name="toolpkg_error_copy_to_temp_failed">Copierea fișierului selectat în directorul temporar a eșuat</string>
+    <string name="workspace_empty">Spațiul de lucru e gol</string>
+    <string name="package_author_label">Autor: %1$s</string>
 </resources>

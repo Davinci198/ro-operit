@@ -40,6 +40,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ai.assistance.operit.R
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import com.ai.assistance.operit.core.tools.AIToolHandler
 import com.ai.assistance.operit.core.tools.packTool.PackageManager as ToolPackageManager
 import com.ai.assistance.operit.data.skill.SkillRepository
@@ -608,12 +610,13 @@ private fun buildMentionPackageOptions(
     return options.values.toList()
 }
 
+@Composable
 private fun buildMentionPackageSubtitle(suggestion: MentionPackageSuggestion): String {
     val typeLabel =
         when (suggestion.kind) {
-            MentionPackageKind.PACKAGE -> "工具包"
-            MentionPackageKind.SKILL -> "Skill 包"
-            MentionPackageKind.MCP -> "MCP 包"
+            MentionPackageKind.PACKAGE -> stringResource(R.string.mention_kind_package)
+            MentionPackageKind.SKILL -> stringResource(R.string.mention_kind_skill)
+            MentionPackageKind.MCP -> stringResource(R.string.mention_kind_mcp)
         }
 
     val metaParts = buildList {
