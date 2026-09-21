@@ -19,6 +19,7 @@ import com.ai.assistance.operit.services.core.TokenStatisticsDelegate
 import com.ai.assistance.operit.core.tools.AIToolHandler
 import com.ai.assistance.operit.ui.features.chat.viewmodel.UiStateDelegate
 import com.ai.assistance.operit.ui.features.chat.webview.workspace.process.WorkspaceChangeTracker
+import com.ai.assistance.operit.data.agent.DshChatSyncBridge
 import com.ai.assistance.operit.util.stream.SharedStream
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
@@ -68,6 +69,9 @@ class ChatServiceCore(
     init {
         AppLogger.d(TAG, "ChatServiceCore 初始化")
         initializeDelegates()
+        // Best-effort: hook DSH session sync (inbound) to the chat runtime.
+        // Does nothing unless/until DSH is started (dsh_start tool).
+        runCatching { DshChatSyncBridge.start(context) }
     }
     
     private fun initializeDelegates() {

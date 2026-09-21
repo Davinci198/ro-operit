@@ -10,6 +10,7 @@ import com.ai.assistance.operit.core.chat.AIMessageManager
 import com.ai.assistance.operit.core.chat.logMessageTiming
 import com.ai.assistance.operit.core.chat.messageTimingNow
 import com.ai.assistance.operit.core.tools.AIToolHandler
+import com.ai.assistance.operit.data.agent.DshChatSyncBridge
 import com.ai.assistance.operit.core.tools.agent.PhoneAgentJobRegistry
 import com.ai.assistance.operit.data.model.*
 import com.ai.assistance.operit.data.model.InputProcessingState as EnhancedInputProcessingState
@@ -825,6 +826,8 @@ class MessageProcessingDelegate(
                 val addUserMessageStartTime = messageTimingNow()
                 addMessageToChat(chatId, userMessage)
                 userMessageAdded = true
+                // Forward to DSH session (no-op if DSH is not running)
+                DshChatSyncBridge.onOutgoingChatMessage(context, chatId, userMessage.content)
                 logMessageTiming(
                     stage = "delegate.addUserMessageToChat",
                     startTimeMs = addUserMessageStartTime,
@@ -1415,6 +1418,17 @@ class MessageProcessingDelegate(
                         )
                 }
                 aiMessage = aiMessage.copy(completedAt = System.currentTimeMillis())
+
+                // Forward the completed AI reply to the DSH session (no-op if DSH
+                // is not running) so the DSH Web UI sees the full conversation.
+                if (aiMessage.content.isNotBlank()) {
+                    DshChatSyncBridge.onOutgoingAiMessage(
+                        context,
+                        chatId,
+                        currentRoleName,
+                        aiMessage.content
+                    )
+                }
 
                 if (isWaifuModeEnabled) {
                     syncWaifuMessageMetricsHandler?.invoke(aiMessage)
