@@ -2,10 +2,12 @@
 {
   "name": "zhipu_search",
   "display_name": {
+    "ro": "Căutare Zhipu",
     "zh": "智谱搜索",
     "en": "Zhipu Search"
   },
   "description": {
+    "ro": "API independent de căutare web Zhipu AI, cu rezultate structurate.",
     "zh": "智谱 AI 独立网络搜索 API，返回结构化搜索结果。",
     "en": "Zhipu AI standalone web search API with structured results."
   },

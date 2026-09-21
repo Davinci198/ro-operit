@@ -4,14 +4,13 @@
 
   display_name: {
     ro: "Căutare multi-platformă",
-    ro: "Căutare pe mai multe platforme (inclusiv imagini) de pe Bing, Baidu, Sogou, Quark etc.",
     zh: "多平台搜索"
     en: "Multi-Platform Search"
   }
   category: "Search"
-  description: { zh: "提供多平台搜索功能（含图片搜索），支持从必应、百度、搜狗、夸克等平台获取搜索结果。", en: "Multi-platform search tools (including image search) that fetch results from Bing, Baidu, Sogou, Quark, and more." }
+  description: { ro: "Căutare pe mai multe platforme (inclusiv imagini) de pe Bing, Baidu, Sogou, Quark etc.", zh: "提供多平台搜索功能（含图片搜索），支持从必应、百度、搜狗、夸克等平台获取搜索结果。", en: "Multi-platform search tools (including image search) that fetch results from Bing, Baidu, Sogou, Quark, and more." }
   enabledByDefault: true
-  
+
   tools: [
     {
       name: search_bing

@@ -3,13 +3,12 @@
   name: code_runner
   display_name: {
     ro: "Executant de cod",
-    ro: "Execuție de cod în mai multe limbaje (JavaScript, Python, Ruby, Go, Rust, C/C++).",
     zh: "代码运行器"
     en: "Code Runner"
   }
-  description: { zh: "提供多语言代码执行能力，支持JavaScript、Python、Ruby、Go、Rust、C和C++脚本的运行。可直接执行代码字符串或运行外部文件，适用于快速测试、自动化脚本和教学演示。", en: "Multi-language code execution. Supports running JavaScript, Python, Ruby, Go, Rust, C and C++ scripts. You can execute code strings directly or run external files, useful for quick tests, automation, and demos." }
+  description: { ro: "Execuție de cod în mai multe limbaje (JavaScript, Python, Ruby, Go, Rust, C/C++).", zh: "提供多语言代码执行能力，支持JavaScript、Python、Ruby、Go、Rust、C和C++脚本的运行。可直接执行代码字符串或运行外部文件，适用于快速测试、自动化脚本和教学演示。", en: "Multi-language code execution. Supports running JavaScript, Python, Ruby, Go, Rust, C and C++ scripts. You can execute code strings directly or run external files, useful for quick tests, automation, and demos." }
   enabledByDefault: true
-  
+
   category: "Development"
   // Multiple tools in this package
   tools: [
@@ -600,7 +599,7 @@ EOF`);
             return { success: false, message: `JavaScript执行器测试失败: ${error.message}` };
         }
     }
-    // 测试Python执行功能  
+    // 测试Python执行功能
     async function testPython() {
         try {
             // 检查Python是否可用

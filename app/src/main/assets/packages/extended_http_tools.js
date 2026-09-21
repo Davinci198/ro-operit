@@ -4,11 +4,11 @@
 
     "display_name": {
         "ro": "Instrumente HTTP extinse",
-        "ro": "Încărcare de fișiere și cereri directe de rețea HTTP GET/POST.",
         "zh": "增强 HTTP 工具",
         "en": "Extended HTTP Tools"
     },
     "description": {
+        "ro": "Încărcare de fișiere și cereri directe de rețea HTTP GET/POST.",
         "zh": "允许文件上传，以及 GET/POST 等网络直接访问操作。",
         "en": "Allows file uploads and direct network access operations such as GET/POST."
     },

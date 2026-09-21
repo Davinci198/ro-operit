@@ -2,10 +2,12 @@
 {
   "name": "xai_draw",
   "display_name": {
+    "ro": "Imagini și video xAI",
     "zh": "xAI 图片与视频",
     "en": "xAI Images and Video"
   },
   "description": {
+    "ro": "Generează imagini și videoclipuri cu API-urile oficiale xAI și le salvează local.",
     "zh": "使用 xAI 官方接口生成图片和视频，并保存到本地。",
     "en": "Generate images and videos with the official xAI APIs and save them locally."
   },

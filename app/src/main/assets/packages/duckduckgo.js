@@ -5,11 +5,10 @@ METADATA
 
     "display_name": {
         "ro": "Căutare DuckDuckGo",
-        "ro": "Căutare web și extragere de conținut folosind DuckDuckGo.",
         "zh": "DuckDuckGo 搜索",
         "en": "DuckDuckGo Search"
     },
-    "description": { "zh": "使用DuckDuckGo进行网络搜索和内容抓取。", "en": "Use DuckDuckGo for web search and content extraction." },
+    "description": { "ro": "Căutare web și extragere de conținut folosind DuckDuckGo.", "zh": "使用DuckDuckGo进行网络搜索和内容抓取。", "en": "Use DuckDuckGo for web search and content extraction." },
     "category": "Search",
     "tools": [
         {

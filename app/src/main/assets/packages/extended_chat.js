@@ -4,11 +4,11 @@
 
     "display_name": {
         "ro": "Instrumente de chat extinse",
-        "ro": "Căutare, redenumire și gestionare conversații, citire mesaje și legare carduri de personaj.",
         "zh": "增强对话",
         "en": "Extended Chat"
     },
     "description": {
+        "ro": "Căutare, redenumire și gestionare conversații, citire mesaje și legare carduri de personaj.",
         "zh": "对话工具包：列出/查找/重命名/删除对话、跨话题读取消息、绑定角色卡对话并发送消息。",
         "en": "Chat toolkit: list/find/rename/delete chats, read messages across chats, bind character cards and send messages."
     },

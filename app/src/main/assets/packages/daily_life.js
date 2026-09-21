@@ -5,11 +5,10 @@ METADATA
 
     "display_name": {
         "ro": "Instrumente pentru viața de zi cu zi",
-        "ro": "Data/ora, stare baterie, vreme, mementouri, alarme, SMS, apeluri și comutatoare Wi-Fi/Lanternă.",
         "zh": "日常生活工具包",
         "en": "Daily Life Toolkit"
     },
-    "description": { "zh": "日常生活工具集合：日期时间、设备状态、电量/内存概况、天气查询、提醒、闹钟、短信、电话、微信单条消息发送、QQ单条消息发送、朋友圈发布、手电筒、音量调节、Wi‑Fi 开关、截图、拍照、深色模式、指定时间唤醒 AI 执行一次性定时任务。", "en": "Daily life utilities: date/time, device status, battery/memory overview, weather lookup, reminders, alarms, SMS, calls, single-message WeChat send, single-message QQ send, Moments posting, flashlight, volume control, Wi‑Fi toggle, screenshots, photos, dark mode, wake AI at a specified time for a one-time scheduled task." },
+    "description": { "ro": "Utilitare de viață de zi cu zi: dată/oră, stare dispozitiv, baterie/memorie, vreme, mementouri, alarme, SMS, apeluri, trimitere mesaj WeChat/QQ, publicare Moments, lanternă, control volum, comutator Wi‑Fi, capturi de ecran, fotografii, mod întunecat, trezirea AI la o oră specificată pentru o sarcină programată unică.", "zh": "日常生活工具集合：日期时间、设备状态、电量/内存概况、天气查询、提醒、闹钟、短信、电话、微信单条消息发送、QQ单条消息发送、朋友圈发布、手电筒、音量调节、Wi‑Fi 开关、截图、拍照、深色模式、指定时间唤醒 AI 执行一次性定时任务。", "en": "Daily life utilities: date/time, device status, battery/memory overview, weather lookup, reminders, alarms, SMS, calls, single-message WeChat send, single-message QQ send, Moments posting, flashlight, volume control, Wi‑Fi toggle, screenshots, photos, dark mode, wake AI at a specified time for a one-time scheduled task." },
     "enabledByDefault": true,
     "category": "Life",
     "tools": [
@@ -69,7 +68,7 @@ METADATA
                     "description": { "zh": "唤醒消息内容（可选）", "en": "Wake message content (optional)." },
                     "type": "string",
                     "required": false
-                },
+                }
             ]
         },
         {
