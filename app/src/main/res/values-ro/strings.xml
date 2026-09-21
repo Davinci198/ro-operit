@@ -1005,7 +1005,6 @@
     <!-- Package Manager Screen -->
     <string name="packages">Scripturi</string>
     <string name="skills">Abilități</string>
-    <string name="package_tab_skills">Skill</string>
     <string name="quick_plugin_creator_title">Creează-ți rapid pluginul</string>
     <string name="quick_plugin_creator_desc">Nu găsești pluginul dorit nici în cele preinstalate, nici în magazin? Creează-l tu însuți!</string>
     <string name="quick_plugin_creator_step1_title">1. Actualizare sau descărcare de pachete de creație Skill</string>
