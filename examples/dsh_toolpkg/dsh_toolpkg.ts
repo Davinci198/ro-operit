@@ -2,10 +2,12 @@
 {
   "name": "dsh_toolpkg",
   "display_name": {
+    "ro": "DeepSeek Harness (DSH) — Panou de control",
     "zh": "DeepSeek Harness (DSH) 控制面板",
     "en": "DeepSeek Harness (DSH) Control Panel"
   },
   "description": {
+    "ro": "Gestionează sesiunile DeepSeek Harness în RO-Operit. Pornește/oprește serverul DSH Web, verifică starea, execută comenzi în containerul Ubuntu și accesează interfața completă DSH prin WebView integrat.",
     "zh": "在 RO-Operit 中管理 DeepSeek Harness 会话。启动/停止 DSH Web 服务器，查看状态，在 Ubuntu 容器中执行命令，并通过内嵌 WebView 访问完整的 DSH 界面。",
     "en": "Manage DeepSeek Harness sessions in RO-Operit. Start/stop DSH web server, check status, execute commands in Ubuntu container, and access full DSH UI via embedded WebView."
   },

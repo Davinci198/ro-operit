@@ -191,7 +191,9 @@ class DshBrain private constructor(private val context: Context) {
             val isInstalled = isDshInstalled()
             val dshBinary = findDshBinary()
             val dshHome = getDshHome()
-            AppLogger.e(TAG, "isInstalled check: $isInstalled, binary=$dshBinary, home=$dshHome")
+            // Intent: log de diagnostic la nivel info (nu eroare) — start() continua normal cand isInstalled=false
+            // (declanseaza instalare npm). Folosirea nivelelor de log incorecte afecteaza filtrarea in logcat/collectori.
+            AppLogger.i(TAG, "isInstalled check: $isInstalled, binary=$dshBinary, home=$dshHome")
 
             // If dsh web is already responding inside the container, attach to it
             if (checkHealth(port)) {
