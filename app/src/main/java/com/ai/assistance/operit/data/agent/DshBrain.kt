@@ -74,6 +74,19 @@ class DshBrain private constructor(private val context: Context) {
     private var dshSessionFilePath: String = ""
 
     /**
+     * Optional callback invoked for every message coming FROM the DSH Web UI.
+     * Used by the chat integration to inject DSH messages into the Operit conversation.
+     */
+    @Volatile
+    var onDshMessageReceived: ((SyncMessage) -> Unit)? = null
+
+    /**
+     * Cheap non-suspending check whether the DSH web server is considered running.
+     * Used by hot paths (e.g. outbound chat sync) to skip work quickly.
+     */
+    fun isActive(): Boolean = isRunning.get()
+
+    /**
      * Execute a command inside the Ubuntu container (the same proot Ubuntu used by
      * super_admin:terminal) and adapt the result to the CommandResult shape used across DshBrain.
      *
@@ -347,9 +360,19 @@ class DshBrain private constructor(private val context: Context) {
      * Get sync status
      */
     fun getSyncStatus(): String {
+        // The dsh session file lives INSIDE the Ubuntu container, so File().exists()
+        // from the Android side is always false. Check it via a shell command instead.
         val syncFile = File(operitSyncFilePath)
-        val dshSessionFile = File(dshSessionFilePath)
-        return "Sync: operit=${syncFile.exists()} dsh=${dshSessionFile.exists()} origin=$originId processed=${processedMessageIds.size}"
+        val dshExists = try {
+            val result = runBlocking {
+                executeInUbuntu("test -f $dshSessionFilePath && echo EXISTS || echo MISSING", timeoutMs = 8_000L)
+            }
+            result.success && result.stdout.trim() == "EXISTS"
+        } catch (e: Exception) {
+            AppLogger.w(TAG, "getSyncStatus: failed to check dsh session file", e)
+            false
+        }
+        return "Sync: operit=${syncFile.exists()} dsh=$dshExists origin=$originId processed=${processedMessageIds.size}"
     }
 
     /**
@@ -448,6 +471,8 @@ class DshBrain private constructor(private val context: Context) {
 
         // Forward to Operit memory via channel (to be consumed by MemoryProvider)
         syncChannel.trySend(syncMessage)
+        // Also forward to the chat integration (inject into conversation) if registered
+        onDshMessageReceived?.invoke(syncMessage)
         AppLogger.d(TAG, "Received sync message from DSH: ${syncMessage.content.take(50)}...")
     }
 
