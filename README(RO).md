@@ -502,6 +502,6 @@ Ai întâmpinat o problemă sau ai sugestii? Deschide un [Issue](https://github.
  </picture>
 </a>
   <br>
-  
+
   <sub>Made with ❤️ by the Operit Team</sub>
 </div>
