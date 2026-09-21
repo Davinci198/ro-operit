@@ -147,7 +147,7 @@ jobs:
           FILE="llm/mnn/build.gradle.kts"
           echo "=== BEFORE PATCH ==="
           grep -n "qwen3\|multi_lora\|targets\|MNN_BUILD_DEMO" "$FILE" | head -40 || true
-          ls -l llm/mnn/transformers/llm/engine/demo/ | head -20 || true
+          find llm/mnn/transformers/llm/engine/demo/ -maxdepth 1 | head -20 || true
 
           # 1. Sterge sursele care trag audio.hpp si qwen3
           echo "Deleting qwen3 sources..."
