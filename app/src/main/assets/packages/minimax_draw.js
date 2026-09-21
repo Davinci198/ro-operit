@@ -2,10 +2,12 @@
 {
   "name": "minimax_draw",
   "display_name": {
+    "ro": "Desen MiniMax",
     "zh": "MiniMax 绘图",
     "en": "MiniMax Draw"
   },
   "description": {
+    "ro": "Generează imagini cu API-ul oficial MiniMax de generare imagini (/v1/image_generation). Suportă text-în-imagine și generare cu imagine de referință. Salvează rezultatele în /sdcard/Download/Operit/plugins/draw/minimax_draw/draws/ și returnează referințe Markdown de imagine.",
     "zh": "使用 MiniMax 官方图像生成接口 (/v1/image_generation) 生成图片，支持文生图和带参考图的生图；结果保存到本地 /sdcard/Download/Operit/plugins/draw/minimax_draw/draws/ 目录，并返回 Markdown 图片提示。",
     "en": "Generate images with the official MiniMax image generation API (/v1/image_generation). Supports text-to-image and reference-image generation. Saves results to /sdcard/Download/Operit/plugins/draw/minimax_draw/draws/ and returns Markdown image hints."
   },

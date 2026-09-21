@@ -3,10 +3,12 @@
   "name": "nanobanana_draw",
 
   "display_name": {
+      "ro": "Desen Nanobanana",
       "zh": "Nanobanana 绘图",
       "en": "Nanobanana Draw"
   },
   "description": {
+    "ro": "Generează imagini folosind API-ul Nano Banana (prin serviciul Grsai / https://grsai.com/). Suportă text-în-imagine și imagine-în-imagine (poți oferi URL-uri de imagini de referință sau căi locale; imaginile locale sunt încărcate întâi pentru a obține URL-uri publice). Salvează imaginile în /sdcard/Download/Operit/plugins/draw/nanobanana_draw/draws/ și returnează o referință Markdown de imagine.",
     "zh": "使用 Nano Banana API (基于Grsai的api服务/https://grsai.com/) 根据提示词画图，支持文生图和图生图（可传入参考图片URL或本地图片路径；本地图片会先上传到图床以获得公网URL），将图片保存到本地 /sdcard/Download/Operit/plugins/draw/nanobanana_draw/draws/ 目录，并返回 Markdown 图片提示。",
     "en": "Generate images using the Nano Banana API (via Grsai service / https://grsai.com/). Supports text-to-image and image-to-image (you can provide reference image URLs or local image paths; local images will be uploaded first to get public URLs). Saves images to /sdcard/Download/Operit/plugins/draw/nanobanana_draw/draws/ and returns a Markdown image reference."
   },

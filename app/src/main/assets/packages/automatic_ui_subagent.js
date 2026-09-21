@@ -4,10 +4,11 @@
 
     display_name: {
       ro: "Sub-agent automatizare UI",
-    ro: "Planificare și executare automată a operațiilor de pe ecran (clic, glisare, introducere text).",
-    zh: "自动化AutoGLM子代理"
+      zh: "自动化AutoGLM子代理"
       en: "Automated AutoGLM Sub-agent"
-    }description: {
+    }
+    description: {
+        ro: "Planificare și executare automată a operațiilor de pe ecran (clic, glisare, introducere text).",
         zh: '''
 兼容AutoGLM，提供基于独立UI控制器模型（例如 autoglm-phone-9b）的高层UI自动化子代理工具，用于根据自然语言意图自动规划并执行点击/输入/滑动等一系列界面操作。
 当用户提出需要帮忙完成某个界面操作任务（例如打开应用、搜索内容、在多个页面之间完成一套步骤）时，可以调用本包由子代理自动规划和执行具体步骤。

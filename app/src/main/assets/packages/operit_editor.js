@@ -2,12 +2,12 @@
 {
   name: "operit_editor"
   display_name: {
-  
-    ro: "Modificare directă a setărilor platformei Operit (MCP, Skill, Sandbox, Modele, TTS/STT).",
+    ro: "Editor platformă Operit",
     zh: "Operit平台编辑器"
     en: "Operit Platform Editor"
   }
   description: {
+    ro: "Modificare directă a setărilor platformei Operit (MCP, Skill, Sandbox, Modele, TTS/STT)."
     zh: '''Operit 平台配置直改工具包：提供一组可直接读取与修改 Operit 平台设置的工具，覆盖 MCP、Skill、Sandbox Package、角色卡、功能模型绑定、模型参数、上下文总结与 TTS/STT 语音服务配置。'''
     en: '''Direct Operit platform configuration toolkit: a collection of tools for reading and directly modifying Operit platform settings, covering MCP, Skill, Sandbox Package, character cards, function-model bindings, model parameters, context-summary settings, and TTS/STT speech-service configuration.'''
   }

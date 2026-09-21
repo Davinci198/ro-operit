@@ -3,10 +3,11 @@
   "name": "github",
 
   "display_name": {
+      "ro": "API GitHub",
       "zh": "GitHub API",
       "en": "GitHub API"
   },
-  "description": { "zh": "基于 GitHub REST API 的工具集合（不依赖 GitHub MCP）。包含 GitHub 侧（仓库/Issues/PR/文件提交/分支/差异提交）与本地侧（apply_file 差异更新、terminal 终端）能力。", "en": "A toolkit built on the GitHub REST API (does not depend on GitHub MCP). Includes GitHub-side operations (repos/issues/PRs/commits/branches/diffs) and local-side utilities (apply_file patch updates, terminal)." },
+  "description": { "ro": "Set de unelte bazat pe GitHub REST API (nu depinde de GitHub MCP). Include operații pe partea GitHub (repo-uri/issue-uri/PR/commit-uri/branch-uri/diferențe) și utilitare locale (actualizări apply_file, terminal).", "zh": "基于 GitHub REST API 的工具集合（不依赖 GitHub MCP）。包含 GitHub 侧（仓库/Issues/PR/文件提交/分支/差异提交）与本地侧（apply_file 差异更新、terminal 终端）能力。", "en": "A toolkit built on the GitHub REST API (does not depend on GitHub MCP). Includes GitHub-side operations (repos/issues/PRs/commits/branches/diffs) and local-side utilities (apply_file patch updates, terminal)." },
   "category": "Development",
   "env": [
     {

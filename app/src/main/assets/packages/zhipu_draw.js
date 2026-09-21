@@ -2,10 +2,12 @@
 {
   "name": "zhipu_draw",
   "display_name": {
+    "ro": "Generare imagini Zhipu",
     "zh": "智谱生图",
     "en": "Zhipu Draw"
   },
   "description": {
+    "ro": "Generează imagini prin API-ul de generare imagini Zhipu AI pornind de la un prompt, salvează în /sdcard/Download/Operit/plugins/draw/zhipu_draw/draws/ și returnează o referință Markdown de imagine.",
     "zh": "使用智谱AI图像生成API根据提示词画图，将图片保存到本地 /sdcard/Download/Operit/plugins/draw/zhipu_draw/draws/ 目录，并返回 Markdown 图片提示。",
     "en": "Generate images via Zhipu AI image generation API from a prompt, save to /sdcard/Download/Operit/plugins/draw/zhipu_draw/draws/, and return a Markdown image reference."
   },

@@ -3,11 +3,11 @@
     "name": "crossref",
     "display_name": {
         "ro": "Interogare literatură Crossref",
-        "ro": "Căutare articole academice și metadate prin DOI, cuvinte cheie sau autori.",
         "zh": "Crossref 学术文献查询",
         "en": "Crossref Academic Literature Search"
     },
     "description": {
+        "ro": "Căutare articole academice și metadate prin DOI, cuvinte cheie sau autori.",
         "zh": "Crossref 学术文献查询工具，提供 DOI 查询、关键词搜索、作者搜索等功能，帮助用户查找和获取学术文章元数据。",
         "en": "Crossref scholarly literature search tools: query by DOI, keyword, author, title, ISSN, and retrieve publication metadata."
     },

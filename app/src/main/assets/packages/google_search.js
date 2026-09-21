@@ -4,11 +4,11 @@
 
     "display_name": {
         "ro": "Căutare Google",
-        "ro": "Căutare Google Web și Google Scholar pentru articole academice.",
         "zh": "Google 搜索",
         "en": "Google Search"
     },
     "description": {
+        "ro": "Căutare Google Web și Google Scholar pentru articole academice.",
         "zh": "提供 Google 普通搜索与 Google Scholar 学术搜索能力，支持设置语言与返回条数。",
         "en": "Google web search and Google Scholar search, with configurable language and result count."
     },

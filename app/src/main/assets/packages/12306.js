@@ -3,10 +3,11 @@
     "name": "12306_ticket",
 
     "display_name": {
+        "ro": "Extensie 12306",
         "zh": "12306 拓展",
         "en": "12306 Extension"
     },
-    "description": { "zh": "提供12306火车票信息查询功能，包括余票、中转、经停站等。", "en": "Query China Railway 12306 train ticket information, including availability, transfer routes, and stop stations." },
+    "description": { "ro": "Interogare informații bilete de tren China Railway 12306, inclusiv disponibilitate, rute cu schimb și stații de oprire.", "zh": "提供12306火车票信息查询功能，包括余票、中转、经停站等。", "en": "Query China Railway 12306 train ticket information, including availability, transfer routes, and stop stations." },
     "enabledByDefault": true,
     "category": "Life",
     "tools": [
