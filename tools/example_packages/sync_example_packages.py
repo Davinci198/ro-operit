@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -515,6 +516,111 @@ def _pack_toolpkg_folder(repo_root: Path, source_folder: Path, destination_file:
             zf.write(file_path, arcname)
 
 
+_RO_KEY_PRESENT = re.compile(r'"ro"\s*:|\bro\s*:')
+
+
+def _extract_ro_metadata_fields(text: str) -> dict[str, str]:
+    """Extract ro display_name/description values from a strict-JSON METADATA header.
+
+    HJSON-style headers (unquoted keys) are intentionally not parsed; those
+    packages are not part of the sync whitelist today.
+    """
+    if not text.startswith("/* METADATA"):
+        return {}
+    end = text.find("*/")
+    if end < 0:
+        return {}
+    json_start = text.find("{", 0, end)
+    if json_start < 0:
+        return {}
+    try:
+        data = json.loads(text[json_start:end])
+    except json.JSONDecodeError:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    fields: dict[str, str] = {}
+    for key in ("display_name", "description"):
+        value = data.get(key)
+        if isinstance(value, dict):
+            ro_value = value.get("ro")
+            if isinstance(ro_value, str) and ro_value.strip():
+                fields[key] = ro_value
+    return fields
+
+
+def _inject_ro_metadata_field(metadata_block: str, key: str, ro_value: str) -> str:
+    """Insert a ro entry as the first member of key's object.
+
+    Mirrors the surrounding style: on its own line when the object brace ends
+    the line (multi-line header), inline right after the brace otherwise.
+    """
+    match = re.search(rf'("{key}"|{key})\s*:\s*\{{', metadata_block)
+    if match is None:
+        return metadata_block
+    tail = metadata_block[match.end() :]
+    if tail.lstrip().startswith("}"):
+        return metadata_block
+    quoted = match.group(1).startswith('"')
+    ro_key = '"ro"' if quoted else "ro"
+    encoded = json.dumps(ro_value, ensure_ascii=False)
+    next_newline = metadata_block.find("\n", match.end())
+    inline = next_newline != -1 and bool(metadata_block[match.end() : next_newline].strip())
+    if inline:
+        entry = f"{ro_key}: {encoded}, "
+    else:
+        line_start = metadata_block.rfind("\n", 0, match.start()) + 1
+        line = metadata_block[line_start:match.start()]
+        inner_indent = line[: len(line) - len(line.lstrip())] + "    "
+        entry = f"\n{inner_indent}{ro_key}: {encoded},"
+    return metadata_block[: match.end()] + entry + metadata_block[match.end() :]
+
+
+def _preserve_ro_metadata_fields(destination: Path, source: Path) -> None:
+    """Keep the destination's ro display_name/description after an overwrite.
+
+    The fork maintains Romanian translations in the assets package headers
+    while examples/ carries upstream sources. copy2 would silently drop the
+    ro fields on every re-sync, so re-inject them from the previous
+    destination content. Files whose source already declares ro are left
+    untouched to avoid duplicate keys.
+    """
+    try:
+        dest_text = destination.read_text(encoding="utf-8")
+        src_text = source.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return
+    ro_fields = _extract_ro_metadata_fields(dest_text)
+    if not ro_fields:
+        return
+    if any("*/" in value for value in ro_fields.values()):
+        # A value containing the comment terminator would corrupt the header.
+        return
+    if not src_text.startswith("/* METADATA"):
+        return
+    end = src_text.find("*/")
+    if end < 0:
+        return
+    block = src_text[:end]
+    if _RO_KEY_PRESENT.search(block):
+        print(f"RO-PRESERVE-SKIP: {destination.name} source already declares ro metadata")
+        return
+    updated = block
+    injected: list[str] = []
+    for key in ("display_name", "description"):
+        ro_value = ro_fields.get(key)
+        if ro_value is None:
+            continue
+        new_block = _inject_ro_metadata_field(updated, key, ro_value)
+        if new_block != updated:
+            updated = new_block
+            injected.append(key)
+    if not injected:
+        return
+    destination.write_text(updated + src_text[end:], encoding="utf-8")
+    print(f"RO-PRESERVE: {destination.name} kept ro {', '.join(injected)}")
+
+
 def _run_command(
     command: list[str],
     *,
@@ -983,6 +1089,7 @@ def main() -> int:
             print(f"{action}: {plan.source} -> {dest}")
             if not args.dry_run:
                 shutil.copy2(plan.source, dest)
+                _preserve_ro_metadata_fields(dest, plan.source)
                 output_state[plan.destination_name] = plan_signature
                 copied += 1
             continue
