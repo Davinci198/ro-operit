@@ -17,12 +17,14 @@ data class LogRecord(
 
 /** 日志级别 */
 enum class LogLevel(val displayName: String, val symbol: String, val color: Color) {
-    VERBOSE("详细", "V", Color(0xFF9E9E9E)),
-    DEBUG("调试", "D", Color(0xFF2196F3)),
-    INFO("信息", "I", Color(0xFF4CAF50)),
-    WARNING("警告", "W", Color(0xFFFFC107)),
-    ERROR("错误", "E", Color(0xFFF44336)),
-    FATAL("致命", "F", Color(0xFF9C27B0)),
-    SILENT("静默", "S", Color(0xFF607D8B)),
-    UNKNOWN("未知", "?", Color(0xFF9E9E9E))
+    // displayName is kept for API stability but no longer carries hardcoded UI
+    // text; the logcat UI only renders `symbol` and `color`.
+    VERBOSE("VERBOSE", "V", Color(0xFF9E9E9E)),
+    DEBUG("DEBUG", "D", Color(0xFF2196F3)),
+    INFO("INFO", "I", Color(0xFF4CAF50)),
+    WARNING("WARNING", "W", Color(0xFFFFC107)),
+    ERROR("ERROR", "E", Color(0xFFF44336)),
+    FATAL("FATAL", "F", Color(0xFF9C27B0)),
+    SILENT("SILENT", "S", Color(0xFF607D8B)),
+    UNKNOWN("UNKNOWN", "?", Color(0xFF9E9E9E))
 }

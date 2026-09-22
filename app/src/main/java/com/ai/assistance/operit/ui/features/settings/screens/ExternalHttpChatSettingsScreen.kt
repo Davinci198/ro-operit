@@ -94,20 +94,21 @@ fun ExternalHttpChatSettingsScreen(onBackPressed: () -> Unit) {
     val sampleBaseUrl = accessUrls.firstOrNull() ?: "http://127.0.0.1:$savedPort"
     val webEntryUrl = "$sampleBaseUrl/"
     val webApiBaseUrl = "$sampleBaseUrl/api/"
-    val syncCurl = remember(sampleBaseUrl, curlToken) {
+    val extHttpSampleMessage = stringResource(R.string.ext_http_example_message_sync)
+    val syncCurl = remember(sampleBaseUrl, curlToken, extHttpSampleMessage) {
         """
 curl -X POST "$sampleBaseUrl/api/external-chat" \
   -H "Authorization: Bearer $curlToken" \
   -H "Content-Type: application/json; charset=utf-8" \
-  -d '{"message":"你好","response_mode":"sync","show_floating":true,"initial_mode":"WINDOW","return_tool_status":false}'
+  -d '{"message":"$extHttpSampleMessage","response_mode":"sync","show_floating":true,"initial_mode":"WINDOW","return_tool_status":false}'
         """.trimIndent()
     }
-    val asyncCurl = remember(sampleBaseUrl, curlToken) {
+    val asyncCurl = remember(sampleBaseUrl, curlToken, extHttpSampleMessage) {
         """
 curl -X POST "$sampleBaseUrl/api/external-chat" \
   -H "Authorization: Bearer $curlToken" \
   -H "Content-Type: application/json; charset=utf-8" \
-  -d '{"message":"你好","response_mode":"async_callback","callback_url":"http://YOUR_PC:8080/callback"}'
+  -d '{"message":"$extHttpSampleMessage","response_mode":"async_callback","callback_url":"http://YOUR_PC:8080/callback"}'
         """.trimIndent()
     }
     val healthCurl = remember(sampleBaseUrl, curlToken) {
@@ -120,12 +121,12 @@ curl -X POST "$sampleBaseUrl/api/external-chat" \
             EXTERNAL_CHAT_RESULT_ACTION
         )
     }
-    val intentAdbExample = remember {
+    val intentAdbExample = remember(extHttpSampleMessage) {
         """
 adb shell am broadcast \
   -a $EXTERNAL_CHAT_INTENT_ACTION \
   --es request_id "req-001" \
-  --es message "你好" \
+  --es message "$extHttpSampleMessage" \
   --ez show_floating true \
   --ez return_tool_status false \
   --es initial_mode "WINDOW" \

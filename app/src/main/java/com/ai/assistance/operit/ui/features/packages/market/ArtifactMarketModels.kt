@@ -292,9 +292,9 @@ fun requiresStandaloneArtifactIdUpgrade(runtimePackageId: String): Boolean {
         !trimmed.equals(PLACEHOLDER_MARKET_ARTIFACT_ID, ignoreCase = true)
 }
 
-fun validateStandaloneArtifactRuntimePackageId(runtimePackageId: String) {
+fun validateStandaloneArtifactRuntimePackageId(runtimePackageId: String, errorMessage: String) {
     require(!requiresStandaloneArtifactIdUpgrade(runtimePackageId)) {
-        "当前包 ID「$runtimePackageId」无法生成稳定的市场项目 ID。请改用包含英文字母或数字的包 ID（可含 -、_、.），再重新发布。"
+        errorMessage
     }
 }
 
@@ -327,7 +327,10 @@ fun buildPublishArtifactDescriptor(
 ): PublishArtifactDescriptor {
     val runtimePackageId = localArtifact.packageName.trim().ifBlank { localArtifact.packageName }
     if (publishContext == null) {
-        validateStandaloneArtifactRuntimePackageId(runtimePackageId)
+        validateStandaloneArtifactRuntimePackageId(
+            runtimePackageId,
+            "Package ID `$runtimePackageId` cannot produce a stable market item ID. Use a package ID containing English letters or digits (optionally -, _, .) and publish again."
+        )
     }
     val normalizedRuntimePackageId = normalizeMarketArtifactId(runtimePackageId)
     val contextRuntimePackageId = publishContext?.runtimePackageId?.trim().orEmpty()
@@ -431,7 +434,7 @@ fun buildArtifactMarketMetadata(
         projectId = payload.projectId,
         projectDisplayName = payload.projectDisplayName,
         projectDescription = payload.projectDescription,
-        runtimePackageId = payload.runtimePackageId,
+        runtimePackageId = payload.runtimePackageId,
         publisherLogin = payload.publisherLogin,
         releaseOwner = payload.releaseOwner,
         releaseRepository = payload.releaseRepository,

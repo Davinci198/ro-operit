@@ -158,6 +158,9 @@ fun <T> MarketBrowseList(
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
                 val listContent: @Composable () -> Unit = {
+                    // Resolved here: the LazyListScope block below is NOT a
+                    // composable context, so resource reads must happen before it.
+                    val fallbackDateLabel = stringResource(R.string.market_time_earlier)
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         state = listState,
@@ -169,6 +172,7 @@ fun <T> MarketBrowseList(
                                 items = items,
                                 itemKey = itemKey,
                                 updatedAtSelector = updatedAtSelector,
+                                fallbackDateLabel = fallbackDateLabel,
                                 itemContent = itemContent
                             )
                         } else {
@@ -281,11 +285,12 @@ private fun <T> LazyListScope.groupedMarketItems(
     items: List<T>,
     itemKey: (T) -> Any,
     updatedAtSelector: (T) -> String,
+    fallbackDateLabel: String,
     itemContent: @Composable (T) -> Unit
 ) {
     val groupedItems =
         items.groupBy { item ->
-            resolveMarketUpdatedDateLabel(updatedAtSelector(item))
+            resolveMarketUpdatedDateLabel(updatedAtSelector(item), fallbackDateLabel)
         }
 
     groupedItems.forEach { (dateLabel, groupItems) ->
@@ -309,10 +314,10 @@ private fun MarketBrowseDateHeader(dateLabel: String) {
     )
 }
 
-private fun resolveMarketUpdatedDateLabel(rawUpdatedAt: String): String {
+private fun resolveMarketUpdatedDateLabel(rawUpdatedAt: String, fallbackLabel: String): String {
     val trimmed = rawUpdatedAt.trim()
     if (trimmed.isBlank()) {
-        return "更早"
+        return fallbackLabel
     }
 
     parseMarketUpdatedDate(trimmed)?.let { date ->

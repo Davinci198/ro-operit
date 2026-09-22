@@ -8037,4 +8037,77 @@ Vă rugăm să sprijiniți autorul original și să fiți atenți la revânzare.
     <string name="toolpkg_error_copy_to_temp_failed">Copierea fișierului selectat în directorul temporar a eșuat</string>
     <string name="workspace_empty">Spațiul de lucru e gol</string>
     <string name="package_author_label">Autor: %1$s</string>
+
+    <!-- Ecran de recuperare date -->
+    <string name="recovery_title">Recuperare date</string>
+    <string name="recovery_section_snapshot">Snapshot brut</string>
+    <string name="recovery_snapshot_desc">Exportul împachetează fișierele interne files, shared_prefs, datastore, databases și directorul de pachet Android/data; importul suprascrie datele curente.</string>
+    <string name="recovery_export_snapshot">Exportă snapshot</string>
+    <string name="recovery_import_snapshot">Importă snapshot</string>
+    <string name="recovery_launch_main_app">Pornește aplicația principală</string>
+    <string name="recovery_section_files">Gestionare fișiere</string>
+    <string name="recovery_files_desc">Această pagină nu deschide direct un manager de fișiere. Pentru a vedea sau exporta manual fișierele interne, deschide MT Manager, adaugă un depozit „Stocare locală", apoi alege depozitul de date al Operit. provider: %1$s</string>
+    <string name="recovery_section_sql">Executor SQL</string>
+    <string name="recovery_sql_chip_messages">dimensiune messages</string>
+    <string name="recovery_sql_chip_variants">dimensiune variants</string>
+    <string name="recovery_sql_chip_chats">câmpuri chats</string>
+    <string name="recovery_sql_execute">Rulează</string>
+    <string name="recovery_import_dialog_title">Importă snapshot brut</string>
+    <string name="recovery_import_dialog_message">Importul suprascrie datele actuale ale aplicației. Importi acest snapshot?</string>
+    <string name="recovery_import_confirm">Importă</string>
+    <string name="recovery_cancel">Anulează</string>
+    <string name="recovery_status_started">Procesul de recuperare a pornit</string>
+    <string name="recovery_affected_rows">Rânduri afectate: %1$d</string>
+    <string name="recovery_query_result_rows">Rezultat interogare: %1$d rânduri</string>
+    <string name="recovery_cannot_launch_main_app">Nu se poate porni aplicația principală</string>
+    <string name="recovery_error_empty_sql">SQL-ul este gol</string>
+    <string name="recovery_status_running_sql">Se rulează SQL</string>
+    <string name="recovery_status_query_done">Interogare finalizată: %1$d rânduri</string>
+    <string name="recovery_status_sql_done">SQL finalizat</string>
+    <string name="recovery_status_exporting_snapshot">Se exportă snapshot-ul brut</string>
+    <string name="recovery_status_export_done">Exportul snapshot-ului brut s-a terminat</string>
+    <string name="recovery_status_importing_snapshot">Se importă snapshot-ul brut</string>
+    <string name="recovery_status_import_done">Importul snapshot-ului brut s-a terminat, repornește aplicația</string>
+    <string name="recovery_progress_export_stage">Export: %1$s</string>
+    <string name="recovery_progress_import_stage">Import: %1$s</string>
+
+    <!-- Notificări market & timp relativ -->
+    <string name="market_notif_comment_new">Comentariu nou</string>
+    <string name="market_notif_comment_reply">A răspuns la comentariul tău</string>
+    <string name="market_notif_review_approved">Aprobat</string>
+    <string name="market_notif_review_rejected">Respins</string>
+    <string name="market_notif_review_changes">Modificări necesare</string>
+    <string name="market_notif_entry_curated">Selectat în recomandări</string>
+    <string name="market_time_just_now">Chiar acum</string>
+    <string name="market_time_minutes_ago">acum %1$d minute</string>
+    <string name="market_time_hours_ago">acum %1$d ore</string>
+    <string name="market_time_days_ago">acum %1$d zile</string>
+    <string name="market_time_months_ago">acum %1$d luni</string>
+    <string name="market_time_years_ago">acum %1$d ani</string>
+    <string name="market_duration_hours_minutes">%1$d h %2$d min</string>
+    <string name="market_duration_hours">%1$d h</string>
+    <string name="market_duration_minutes">%1$d min</string>
+    <string name="market_time_earlier">Mai devreme</string>
+    <string name="market_publish_login_required">Autentifică-te cu GitHub pentru a publica %1$s.</string>
+
+    <!-- Etichete niveluri log -->
+    <string name="log_level_verbose">Verbos</string>
+    <string name="log_level_debug">Debug</string>
+    <string name="log_level_info">Info</string>
+    <string name="log_level_warn">Avertisment</string>
+    <string name="log_level_error">Eroare</string>
+    <string name="log_level_fatal">Fatal</string>
+    <string name="log_level_silent">Silențios</string>
+    <string name="log_level_unknown">Necunoscut</string>
+
+    <!-- Erori instalare plugin -->
+    <string name="plugin_error_duplicate_builtin">Un plugin integrat cu același nume `%1$s` este deja instalat local și nu poate fi suprascris direct.</string>
+    <string name="plugin_error_replace_failed">Înlocuirea plugin-ului instalat `%1$s` a eșuat.</string>
+    <string name="plugin_error_unstable_market_id">ID-ul de pachet „%1$s” nu poate genera un ID de articol de market stabil. Folosește un ID de pachet care conține litere englezești sau cifre (opțional -、_、.) și publică din nou.</string>
+
+    <!-- Exemple HTTP extern pentru chat -->
+    <string name="ext_http_example_message_sync">你好</string>
+    <string name="ext_http_example_message_async">你好</string>
+    <string name="ext_http_example_message_broadcast">你好</string>
+
 </resources>

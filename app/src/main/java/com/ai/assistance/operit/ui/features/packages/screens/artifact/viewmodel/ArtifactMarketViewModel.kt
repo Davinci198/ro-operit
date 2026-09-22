@@ -484,7 +484,13 @@ class ArtifactMarketViewModel(
         displayName: String,
         runtimePackageId: String
     ) {
-        validateStandaloneArtifactRuntimePackageId(runtimePackageId)
+        validateStandaloneArtifactRuntimePackageId(
+            runtimePackageId,
+            context.getString(
+                com.ai.assistance.operit.R.string.plugin_error_unstable_market_id,
+                runtimePackageId
+            )
+        )
 
         val normalizedTitle = normalizePublishTitle(displayName)
         val normalizedRuntimePackageId = normalizeMarketArtifactId(runtimePackageId)

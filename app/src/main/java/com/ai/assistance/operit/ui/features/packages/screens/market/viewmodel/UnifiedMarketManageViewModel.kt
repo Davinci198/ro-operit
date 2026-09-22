@@ -296,9 +296,9 @@ class UnifiedMarketManageViewModel(
         val hours = totalMinutes / 60L
         val minutes = totalMinutes % 60L
         return when {
-            hours > 0L && minutes > 0L -> "${hours}小时${minutes}分钟"
-            hours > 0L -> "${hours}小时"
-            else -> "${minutes}分钟"
+            hours > 0L && minutes > 0L -> context.getString(R.string.market_duration_hours_minutes, hours, minutes)
+            hours > 0L -> context.getString(R.string.market_duration_hours, hours)
+            else -> context.getString(R.string.market_duration_minutes, minutes)
         }
     }
 

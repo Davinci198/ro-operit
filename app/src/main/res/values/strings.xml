@@ -8031,4 +8031,76 @@
     <string name="workspace_empty">工作区为空</string>
     <string name="package_author_label">作者：%1$s</string>
 
+    <!-- Data recovery screen -->
+    <string name="recovery_title">数据救援</string>
+    <string name="recovery_section_snapshot">原始快照</string>
+    <string name="recovery_snapshot_desc">导出会打包内部 files、shared_prefs、datastore、databases 和 Android/data 包目录；导入会覆盖当前数据。</string>
+    <string name="recovery_export_snapshot">导出快照</string>
+    <string name="recovery_import_snapshot">导入快照</string>
+    <string name="recovery_launch_main_app">启动主应用</string>
+    <string name="recovery_section_files">文件管理</string>
+    <string name="recovery_files_desc">此页不直接打开文件管理器。需要手动查看或导出内部文件时，可以打开 MT 管理器，添加「本地存储仓库」，选择 Operit 的数据仓库后再管理。provider: %1$s</string>
+    <string name="recovery_section_sql">SQL 执行器</string>
+    <string name="recovery_sql_chip_messages">messages 大小</string>
+    <string name="recovery_sql_chip_variants">variants 大小</string>
+    <string name="recovery_sql_chip_chats">chats 字段</string>
+    <string name="recovery_sql_execute">执行</string>
+    <string name="recovery_import_dialog_title">导入原始快照</string>
+    <string name="recovery_import_dialog_message">导入会覆盖当前应用数据。确认导入这个快照？</string>
+    <string name="recovery_import_confirm">导入</string>
+    <string name="recovery_cancel">取消</string>
+    <string name="recovery_status_started">救援进程已启动</string>
+    <string name="recovery_affected_rows">受影响行数：%1$d</string>
+    <string name="recovery_query_result_rows">查询结果 %1$d 行</string>
+    <string name="recovery_cannot_launch_main_app">无法启动主应用</string>
+    <string name="recovery_error_empty_sql">SQL 为空</string>
+    <string name="recovery_status_running_sql">正在执行 SQL</string>
+    <string name="recovery_status_query_done">查询完成：%1$d 行</string>
+    <string name="recovery_status_sql_done">SQL 执行完成</string>
+    <string name="recovery_status_exporting_snapshot">正在导出原始快照</string>
+    <string name="recovery_status_export_done">原始快照导出完成</string>
+    <string name="recovery_status_importing_snapshot">正在导入原始快照</string>
+    <string name="recovery_status_import_done">原始快照导入完成，请重启应用</string>
+    <string name="recovery_progress_export_stage">导出：%1$s</string>
+    <string name="recovery_progress_import_stage">导入：%1$s</string>
+
+    <!-- Market notifications & relative time -->
+    <string name="market_notif_comment_new">新评论</string>
+    <string name="market_notif_comment_reply">回复了你的评论</string>
+    <string name="market_notif_review_approved">已通过审核</string>
+    <string name="market_notif_review_rejected">未通过审核</string>
+    <string name="market_notif_review_changes">需要修改</string>
+    <string name="market_notif_entry_curated">入选精选</string>
+    <string name="market_time_just_now">刚刚</string>
+    <string name="market_time_minutes_ago">%1$d 分钟前</string>
+    <string name="market_time_hours_ago">%1$d 小时前</string>
+    <string name="market_time_days_ago">%1$d 天前</string>
+    <string name="market_time_months_ago">%1$d 个月前</string>
+    <string name="market_time_years_ago">%1$d 年前</string>
+    <string name="market_duration_hours_minutes">%1$d小时%2$d分钟</string>
+    <string name="market_duration_hours">%1$d小时</string>
+    <string name="market_duration_minutes">%1$d分钟</string>
+    <string name="market_time_earlier">更早</string>
+    <string name="market_publish_login_required">GitHub 登录后才能发布 %1$s。</string>
+
+    <!-- Log level labels -->
+    <string name="log_level_verbose">详细</string>
+    <string name="log_level_debug">调试</string>
+    <string name="log_level_info">信息</string>
+    <string name="log_level_warn">警告</string>
+    <string name="log_level_error">错误</string>
+    <string name="log_level_fatal">致命</string>
+    <string name="log_level_silent">静默</string>
+    <string name="log_level_unknown">未知</string>
+
+    <!-- Plugin install errors -->
+    <string name="plugin_error_duplicate_builtin">本地已安装同名内置插件 `%1$s`，不能直接覆盖。</string>
+    <string name="plugin_error_replace_failed">替换已安装插件 `%1$s` 失败。</string>
+    <string name="plugin_error_unstable_market_id">当前包 ID「%1$s」无法生成稳定的市场项目 ID。请改用包含英文字母或数字的包 ID（可含 -、_、.），再重新发布。</string>
+
+    <!-- External HTTP chat examples -->
+    <string name="ext_http_example_message_sync">你好</string>
+    <string name="ext_http_example_message_async">你好</string>
+    <string name="ext_http_example_message_broadcast">你好</string>
+
 </resources>
