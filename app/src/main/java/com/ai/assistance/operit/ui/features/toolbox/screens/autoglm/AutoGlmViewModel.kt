@@ -169,7 +169,7 @@ class AutoGlmViewModel(private val context: Context) : ViewModel() {
 
                     val finalLines = finalMessage.lines()
                     if (finalLines.isNotEmpty()) {
-                        appendFinal("✅ 任务完成: ${finalLines.first().trim()}")
+                        appendFinal(context.getString(com.ai.assistance.operit.R.string.autoglm_task_complete, finalLines.first().trim()))
                         finalLines.drop(1).forEach { line ->
                             if (line.isNotBlank()) {
                                 appendFinal(line.trim())
@@ -210,7 +210,7 @@ class AutoGlmViewModel(private val context: Context) : ViewModel() {
             }
         return FunctionalPrompts.buildUiAutomationAgentPrompt(formattedDate, useEnglish)
     }
-    
+
     private fun extractTagContent(text: String, tag: String): String? {
         val pattern = Regex("""<$tag>(.*?)</$tag>""", RegexOption.DOT_MATCHES_ALL)
         return pattern.find(text)?.groupValues?.getOrNull(1)?.trim()
@@ -231,7 +231,7 @@ class AutoGlmViewModel(private val context: Context) : ViewModel() {
 
         // 💭 思考过程
         stepResult.thinking?.takeIf { it.isNotBlank() }?.let { thinking ->
-            append("💭 思考过程:")
+            append(context.getString(com.ai.assistance.operit.R.string.autoglm_thinking_process))
             append("--------------------------------------------------")
             thinking.trim().lines().forEach { line ->
                 if (line.isNotBlank()) {
@@ -243,7 +243,7 @@ class AutoGlmViewModel(private val context: Context) : ViewModel() {
         // 🎯 执行动作
         stepResult.action?.let { action ->
             append("--------------------------------------------------")
-            append("🎯 执行动作:")
+            append(context.getString(com.ai.assistance.operit.R.string.autoglm_execute_action))
 
             val jsonLines = mutableListOf<String>()
             action.actionName?.let { name ->

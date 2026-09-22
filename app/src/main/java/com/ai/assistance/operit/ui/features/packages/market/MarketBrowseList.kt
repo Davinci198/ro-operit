@@ -285,7 +285,7 @@ private fun <T> LazyListScope.groupedMarketItems(
 ) {
     val groupedItems =
         items.groupBy { item ->
-            resolveMarketUpdatedDateLabel(updatedAtSelector(item))
+            resolveMarketUpdatedDateLabel(updatedAtSelector(item), stringResource(R.string.market_time_earlier))
         }
 
     groupedItems.forEach { (dateLabel, groupItems) ->
@@ -309,10 +309,10 @@ private fun MarketBrowseDateHeader(dateLabel: String) {
     )
 }
 
-private fun resolveMarketUpdatedDateLabel(rawUpdatedAt: String): String {
+private fun resolveMarketUpdatedDateLabel(rawUpdatedAt: String, fallbackLabel: String): String {
     val trimmed = rawUpdatedAt.trim()
     if (trimmed.isBlank()) {
-        return "更早"
+        return fallbackLabel
     }
 
     parseMarketUpdatedDate(trimmed)?.let { date ->

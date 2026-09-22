@@ -159,7 +159,12 @@ suspend fun installArtifactProjectVersion(
     when (installState.kind) {
         LocalArtifactInstallStateKind.EXACT_INSTALLED -> return
         LocalArtifactInstallStateKind.BUILT_IN_CONFLICT ->
-            throw IllegalStateException("本地已安装同名内置插件 `${version.runtimePackageId}`，不能直接覆盖。")
+            throw IllegalStateException(
+                context.getString(
+                    com.ai.assistance.operit.R.string.plugin_error_duplicate_builtin,
+                    version.runtimePackageId
+                )
+            )
         LocalArtifactInstallStateKind.NAME_CONFLICT,
         LocalArtifactInstallStateKind.NOT_INSTALLED,
         LocalArtifactInstallStateKind.SAME_PROJECT_VARIANT_INSTALLED -> Unit
@@ -178,7 +183,12 @@ suspend fun installArtifactProjectVersion(
                     packageManager.deletePackage(installedPackageName)
                 }
             if (!deleted) {
-                throw IllegalStateException("替换已安装插件 `${installedPackageName}` 失败。")
+                throw IllegalStateException(
+                    context.getString(
+                        com.ai.assistance.operit.R.string.plugin_error_replace_failed,
+                        installedPackageName
+                    )
+                )
             }
         }
         val importResult =
