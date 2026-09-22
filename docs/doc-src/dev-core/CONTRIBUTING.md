@@ -12,7 +12,7 @@
 
 ## 提交 Issue
 
-请先在 [Issue 区](https://github.com/AAswordman/Operit/issues) 搜索相同问题，再选择对应的 Issue Form：
+请先在 [Issue 区](https://github.com/Davinci198/fix-operit/issues) 搜索相同问题，再选择对应的 Issue Form：
 
 - Bug report：错误、崩溃和异常行为
 - Feature request：功能和行为建议
@@ -39,7 +39,7 @@ Fork 并克隆仓库后，建议保留 `upstream` 远程：
 git clone https://github.com/<your-account>/Operit.git
 cd Operit
 git submodule update --init --recursive terminal
-git remote add upstream https://github.com/AAswordman/Operit.git
+git remote add upstream https://github.com/Davinci198/fix-operit.git
 git fetch upstream
 git switch -c fix/short-description upstream/main
 ```

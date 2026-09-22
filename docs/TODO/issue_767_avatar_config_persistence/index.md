@@ -1,7 +1,7 @@
 ---
 title: Issue 767 头像配置持久化修复
 repo: https://github.com/luojiaping/Operit
-issue: https://github.com/AAswordman/Operit/issues/767
+issue: https://github.com/Davinci198/fix-operit/issues/767
 status: completed
 ---
 

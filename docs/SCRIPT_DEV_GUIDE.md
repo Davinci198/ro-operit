@@ -52,7 +52,7 @@ Operit 会核对 Release 资产与本地所选文件是否相同，并由市场�
 
 ```bash
 # 克隆项目仓库
-git clone https://github.com/AAswordman/Operit.git
+git clone https://github.com/Davinci198/fix-operit.git
 cd Operit
 
 # 安装项目依赖 (主要是TypeScript编译器)

@@ -2,7 +2,7 @@
 title: STT 模型构建期自动准备
 status: done
 document_type: implementation-plan
-fork_repository: "https://github.com/AAswordman/Operit"
+fork_repository: "https://github.com/Davinci198/fix-operit"
 last_reviewed: 2026-07-25
 ---
 

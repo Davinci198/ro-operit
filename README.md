@@ -3,20 +3,15 @@
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/github/last-commit/AAswordman/Operit" alt="Last Commit">
+  <img src="https://img.shields.io/github/last-commit/Davinci198/fix-operit" alt="Last Commit">
   <img src="https://img.shields.io/badge/Platform-Android_8.0%2B-brightgreen.svg" alt="Platform">
-  <a href="https://github.com/AAswordman/Operit/releases/latest"><img src="https://img.shields.io/github/v/release/AAswordman/Operit" alt="Latest Release"></a>
+  <a href="https://github.com/Davinci198/fix-operit/releases/latest"><img src="https://img.shields.io/github/v/release/Davinci198/fix-operit" alt="Latest Release"></a>
   <br>
-  <a href="https://github.com/AAswordman/Operit/stargazers"><img src="https://img.shields.io/github/stars/AAswordman/Operit" alt="GitHub Stars"></a>
-  <a href="https://aaswordman.github.io/OperitWeb"><img src="https://img.shields.io/badge/📖-用户指南-blue.svg" alt="User Guide"></a>
-  <a href="https://www.patreon.com/c/aaswordsman"><img src="https://img.shields.io/badge/🌍-Patreon-f96854.svg" alt="Patreon"></a>
-  <a href="https://afdian.com/a/aaswordsman"><img src="https://img.shields.io/badge/💖-支持开发-ff6b6b.svg" alt="Support Development"></a>
+  <a href="https://github.com/Davinci198/fix-operit/stargazers"><img src="https://img.shields.io/github/stars/Davinci198/fix-operit" alt="GitHub Stars"></a>
+  <a href="https://github.com/Davinci198/fix-operit"><img src="https://img.shields.io/badge/📖-用户指南-blue.svg" alt="User Guide"></a>
   <a href="docs/doc-src/dev-core/CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions Welcome"></a>
   <br>
-  <a href="mailto:aaswordsman@foxmail.com"><img src="https://img.shields.io/badge/📧-Email-red.svg" alt="Email"></a>
-  <a href="https://qm.qq.com/q/Sa4fKEH7sO"><img src="https://img.shields.io/badge/💬-QQ群-blue.svg" alt="QQ Group"></a>
-  <a href="https://discord.gg/YnV9MWurRF"><img src="https://img.shields.io/badge/🎮-Discord-5865F2.svg" alt="Discord"></a>
-  <a href="https://github.com/AAswordman/Operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
+  <a href="https://github.com/Davinci198/fix-operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
 </div>
 
 <div align="center">
@@ -176,10 +171,10 @@ AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智�
 | 项目 | 说明 |
 |-----|------|
 | 📋 **系统要求** | Android 8.0+ (API 26+)，建议 6GB+ 内存，5GB+ 剩余存储 |
-| 📥 **下载安装** | [Release页面](https://github.com/AAswordman/Operit/releases) 下载最新APK |
+| 📥 **下载安装** | [Release页面](https://github.com/Davinci198/fix-operit/releases) 下载最新APK |
 | 📖 **使用指南** | [官方网站](https://operit.app) 包含详细教程和示例 |
 
-> **安全提示：** 为确保您的数据安全，请务必从官方 [Release页面](https://github.com/AAswordman/Operit/releases) 或 [官方网站](https://operit.app) 下载本应用。通过未知渠道下载的安装包可能被恶意修改，从而导致隐私泄露或设备被监听。
+> **安全提示：** 为确保您的数据安全，请务必从官方 [Release页面](https://github.com/Davinci198/fix-operit/releases) 或 [官方网站](https://operit.app) 下载本应用。通过未知渠道下载的安装包可能被恶意修改，从而导致隐私泄露或设备被监听。
 
 **安装步骤：** 下载APK → 安装启动 → 按引导配置 → 开始使用 ✨
 
@@ -433,7 +428,7 @@ AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智�
 </tr>
 </table>
 
-> 📝 **完整更新日志**：访问 [Releases 页面](https://github.com/AAswordman/Operit/releases) 查看每个版本的详细更新内容
+> 📝 **完整更新日志**：访问 [Releases 页面](https://github.com/Davinci198/fix-operit/releases) 查看每个版本的详细更新内容
 
 ---
 
@@ -444,22 +439,19 @@ AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智�
 **开发者须知：**
 - 📚 [开源共创指南](docs/doc-src/dev-core/CONTRIBUTING.md) | [脚本开发指南](docs/SCRIPT_DEV_GUIDE.md)
 - 📦 构建项目需从 [Google Drive](https://drive.google.com/drive/folders/1g-Q_i7cf6Ua4KX9ZM6V282EEZvTVVfF7?usp=sharing) 下载非模型依赖压缩包（`subpack.zip`、`jniLibs.zip`、`libs.zip`）；默认本地 STT 模型会在 Android 构建期按 `app/config/stt-model-assets.properties` 自动获取并校验
-- 💬 加入社区讨论：[QQ群](https://qm.qq.com/q/Sa4fKEH7sO) | [Discord](https://discord.gg/YnV9MWurRF)
 
 ### 💖 贡献者
 
 感谢所有为 Operit AI 做出贡献的人！
 
-<a href="https://github.com/AAswordman/Operit/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=AAswordman/Operit" />
+<a href="https://github.com/Davinci198/fix-operit/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Davinci198/fix-operit" />
 </a>
 
 ## 💖 支持开发
 
 如果 Operit AI 对您有帮助，欢迎自愿支持项目持续开发与基础运营：
 
-- 海外支持可使用 [Patreon](https://www.patreon.com/c/aaswordsman)
-- 境内支持可使用 [爱发电](https://afdian.com/a/aaswordsman)
 
 - 赞助完全自愿，不与任何功能、额度、更新、答疑或其他权益挂钩
 - 即使不赞助，也不影响正常使用、获取更新或访问开源代码
@@ -480,7 +472,7 @@ AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智�
 
 ## 📝 问题反馈
 
-遇到问题或有建议？欢迎 [提交 Issue](https://github.com/AAswordman/Operit/issues)！
+遇到问题或有建议？欢迎 [提交 Issue](https://github.com/Davinci198/fix-operit/issues)！
 
 **提交指南：**
 - 📝 清晰描述问题/建议，提供复现步骤
@@ -494,11 +486,11 @@ AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智�
   <p><b>🚀 帮助我们推广，让更多人了解 Operit AI 🚀</b></p>
   ## Star History
 
-<a href="https://www.star-history.com/?repos=AAswordman%2FOperit&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=Davinci198%2Ffix-operit&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=AAswordman/Operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=AAswordman/Operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=AAswordman/Operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
  </picture>
 </a>
   <br>

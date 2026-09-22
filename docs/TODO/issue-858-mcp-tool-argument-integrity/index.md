@@ -1,6 +1,6 @@
 ---
 fork_repository: local main
-issue: https://github.com/AAswordman/Operit/issues/858
+issue: https://github.com/Davinci198/fix-operit/issues/858
 ---
 
 # Issue 858 MCP 工具参数完整性

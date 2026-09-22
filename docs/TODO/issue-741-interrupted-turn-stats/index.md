@@ -1,6 +1,6 @@
 ---
 fork: https://github.com/luojiaping/Operit
-issue: https://github.com/AAswordman/Operit/issues/741
+issue: https://github.com/Davinci198/fix-operit/issues/741
 branch: fix/issue-741-interrupted-turn-stats
 ---
 

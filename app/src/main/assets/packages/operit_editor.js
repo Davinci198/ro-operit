@@ -120,7 +120,7 @@
 - 先调用 list_sandbox_packages 获取“内置+外部”包列表与当前 enabled 状态。
 - 再调用 set_sandbox_package_enabled(package_name, enabled) 执行启停。
 5) 制作包文档：
-- https://cdn.jsdelivr.net/gh/AAswordman/Operit@main/docs/SCRIPT_DEV_SKILL.md
+- https://cdn.jsdelivr.net/gh/Davinci198/fix-operit@main/docs/SCRIPT_DEV_SKILL.md
 - 该地址可直接通过 HTTP GET 请求访问，用于拉取原始 Markdown 文档内容。
 6) 软件内调试烧录：
 - 普通 `.js` 沙盒包优先用 `debug_install_js_package`。
@@ -380,7 +380,7 @@
 - Call list_sandbox_packages first to get built-in + external package list and current enabled state.
 - Then call set_sandbox_package_enabled(package_name, enabled) to apply changes.
 5) Package authoring guide:
-- https://cdn.jsdelivr.net/gh/AAswordman/Operit@main/docs/SCRIPT_DEV_SKILL.md
+- https://cdn.jsdelivr.net/gh/Davinci198/fix-operit@main/docs/SCRIPT_DEV_SKILL.md
 - This URL can be accessed directly with an HTTP GET request to fetch the raw Markdown document.
 6) In-app debug install:
 - For plain `.js` sandbox packages, prefer `debug_install_js_package`.

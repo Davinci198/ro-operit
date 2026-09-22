@@ -1,7 +1,7 @@
 ---
 title: MCP standard config transport import
 status: implemented-verification-pending
-fork: https://github.com/AAswordman/Operit.git
+fork: https://github.com/Davinci198/fix-operit.git
 ---
 
 # MCP 标准配置传输导入

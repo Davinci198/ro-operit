@@ -6,7 +6,7 @@ import com.ai.assistance.operit.data.api.MarketV2Entry
 import java.io.File
 import kotlinx.serialization.Serializable
 
-const val OPERIT_MARKET_OWNER = "AAswordman"
+const val OPERIT_MARKET_OWNER = "Davinci198"
 const val OPERIT_FORGE_REPO_NAME = "OperitForge"
 
 private const val SCRIPT_MARKET_LABEL = "script-artifact"

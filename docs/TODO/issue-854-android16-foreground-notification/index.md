@@ -1,6 +1,6 @@
 ---
 fork_repository: local main
-issue: https://github.com/AAswordman/Operit/issues/854
+issue: https://github.com/Davinci198/fix-operit/issues/854
 ---
 
 # Issue 854 Android 16 前台通知

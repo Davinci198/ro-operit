@@ -1,6 +1,6 @@
 ---
 title: Theme Target Menu Avatars
-fork: https://github.com/AAswordman/Operit.git
+fork: https://github.com/Davinci198/fix-operit.git
 branch: current-worktree
 status: implementation_complete
 ---

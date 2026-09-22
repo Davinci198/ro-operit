@@ -2,7 +2,7 @@
 title: QuickJS 执行上下文生命周期
 status: completed
 document_type: implementation-plan-index
-repository: https://github.com/AAswordman/Operit.git
+repository: https://github.com/Davinci198/fix-operit.git
 last_reviewed: 2026-08-01
 ---
 

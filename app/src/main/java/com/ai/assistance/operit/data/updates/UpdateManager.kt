@@ -144,10 +144,8 @@ class UpdateManager private constructor(private val context: Context) {
 
                 val patchUpdate: UpdateStatus? =
                     if (betaEnabled) {
-                        // Pentru flavor-ul standard folosim patch-urile upstream din
-                        // AAswordman/OperitNightlyRelease. Pentru flavor-ul clone (APK
-                        // re-semnat, cu modificări proprii), patch-urile upstream NU se
-                        // aplică, deci căutăm patch-uri proprii în Davinci198/fix-operit.
+                        // Aplicația e un fork independent (Davinci198): patch-urile se
+                        // caută în Davinci198/fix-operit indiferent de flavor.
                         AppLogger.d(TAG, "beta enabled, trying patch update releases...")
                         val patch = tryFetchLatestPatchUpdate(currentVersion)
                         if (patch != null) {
@@ -179,7 +177,7 @@ class UpdateManager private constructor(private val context: Context) {
                         if (matchResult != null) {
                             Pair(matchResult.groupValues[1], matchResult.groupValues[2])
                         } else {
-                            Pair("AAswordman", "Operit") // 默认值
+                            Pair("Davinci198", "fix-operit") // fallback: repo-ul propriu
                         }
 
                 val githubReleaseUtil = GithubReleaseUtil(context)
@@ -231,8 +229,9 @@ class UpdateManager private constructor(private val context: Context) {
     private suspend fun tryFetchLatestPatchUpdate(currentVersion: String): UpdateStatus? {
         val api = GitHubApiService(context)
         val isClone = BuildConfig.FLAVOR == "clone"
-        val owner = if (isClone) "Davinci198" else "AAswordman"
-        val repo = if (isClone) "fix-operit" else "OperitNightlyRelease"
+        // Fork independent: patch-urile provin întotdeauna din repo-ul propriu.
+        val owner = "Davinci198"
+        val repo = "fix-operit"
         AppLogger.d(TAG, "tryFetchLatestPatchUpdate(): currentVersion=$currentVersion repo=$owner/$repo isClone=$isClone")
         val result = api.getRepositoryReleases(owner = owner, repo = repo, page = 1, perPage = 20)
 
