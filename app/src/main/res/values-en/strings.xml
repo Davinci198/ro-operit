@@ -8026,6 +8026,22 @@
     <string name="notification_kind_review_changes">Changes Required</string>
     <string name="notification_kind_entry_curated">Featured</string>
 
+    <!-- Package market origin -->
+    <string name="package_market_origin_title">External Package Source Notice</string>
+    <string name="package_market_origin_message">This package comes from the Operit Market.\nPackage name: %1$s\nVersion: %2$s\nAuthor: %3$s\nPlease support the original author and beware of unauthorized resales.</string>
+
+    <!-- Memory spaces -->
+    <string name="memory_space_create">New Memory Space</string>
+    <string name="memory_space_rename">Rename Memory Space</string>
+    <string name="memory_space_delete">Delete Memory Space</string>
+    <string name="memory_space_name">Memory Space Name</string>
+    <string name="memory_space_delete_warning">Are you sure you want to delete \\"%1$s\\" and all memories inside it? This action cannot be undone.</string>
+
+    <!-- Market client version compatibility -->
+    <string name="market_version_incompatible_title">Cannot download: unsupported client version</string>
+    <string name="market_version_too_low_message">Your client version %1$s is lower than the minimum version %2$s required by this resource. Please update the client before downloading.</string>
+    <string name="market_version_too_high_message">Your client version %1$s is higher than the maximum supported version %2$s of this resource. Please use a supported client version.</string>
+
     <!-- Editor context menu / attachment & mention labels / misc UI (extracted) -->
     <string name="editor_menu_copy">Copy</string>
     <string name="editor_menu_cut">Cut</string>
