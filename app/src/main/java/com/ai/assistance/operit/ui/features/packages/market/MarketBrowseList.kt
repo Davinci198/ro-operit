@@ -169,7 +169,7 @@ fun <T> MarketBrowseList(
                                 items = items,
                                 itemKey = itemKey,
                                 updatedAtSelector = updatedAtSelector,
-                                fallbackDateLabel = stringResource(R.string.market_time_earlier),
+                                fallbackDateLabel = remember { stringResource(R.string.market_time_earlier) },
                                 itemContent = itemContent
                             )
                         } else {
