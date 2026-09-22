@@ -33,6 +33,7 @@ import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import android.widget.OverScroller
 import androidx.compose.ui.graphics.toArgb
+import com.ai.assistance.operit.R
 import com.ai.assistance.operit.ui.features.chat.webview.workspace.editor.completion.CompletionItem
 import com.ai.assistance.operit.ui.features.chat.webview.workspace.editor.completion.CompletionProvider
 import com.ai.assistance.operit.ui.features.chat.webview.workspace.editor.completion.CompletionProviderFactory
@@ -1554,12 +1555,13 @@ class CanvasCodeEditorView @JvmOverloads constructor(
         val callback =
             object : ActionMode.Callback2() {
                 override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-                    menu.add(0, MENU_COPY, 0, "复制")
+                    val menuContext = context
+                    menu.add(0, MENU_COPY, 0, menuContext.getString(R.string.editor_menu_copy))
                     if (!readOnly) {
-                        menu.add(0, MENU_CUT, 1, "剪切")
-                        menu.add(0, MENU_PASTE, 2, "粘贴")
+                        menu.add(0, MENU_CUT, 1, menuContext.getString(R.string.editor_menu_cut))
+                        menu.add(0, MENU_PASTE, 2, menuContext.getString(R.string.editor_menu_paste))
                     }
-                    menu.add(0, MENU_SELECT_ALL, 3, "全选")
+                    menu.add(0, MENU_SELECT_ALL, 3, menuContext.getString(R.string.editor_menu_select_all))
                     return true
                 }
 

@@ -245,7 +245,9 @@ class WorkspaceChangeTracker private constructor(private val context: Context) {
                 ?.sortedWith(compareBy({ !it.isDirectory }, { it.name }))
                 ?: emptyList()
 
-        if (rootItems.isEmpty()) return "工作区为空"
+        if (rootItems.isEmpty()) {
+            return context.getString(com.ai.assistance.operit.R.string.workspace_empty)
+        }
 
         return buildString {
             rootItems.forEachIndexed { index, file ->

@@ -8041,4 +8041,20 @@
     <string name="market_version_incompatible_title">Cannot download: unsupported client version</string>
     <string name="market_version_too_low_message">Your client version %1$s is lower than the minimum version %2$s required by this resource. Please update the client before downloading.</string>
     <string name="market_version_too_high_message">Your client version %1$s is higher than the maximum supported version %2$s of this resource. Please use a supported client version.</string>
+
+    <!-- Editor context menu / attachment & mention labels / misc UI (extracted) -->
+    <string name="editor_menu_copy">Copy</string>
+    <string name="editor_menu_cut">Cut</string>
+    <string name="editor_menu_paste">Paste</string>
+    <string name="editor_menu_select_all">Select All</string>
+    <string name="attachment_kind_package">Package</string>
+    <string name="attachment_kind_skill">Skill</string>
+    <string name="attachment_kind_mcp">MCP</string>
+    <string name="mention_kind_package">Tool package</string>
+    <string name="mention_kind_skill">Skill package</string>
+    <string name="mention_kind_mcp">MCP package</string>
+    <string name="toolpkg_error_open_selected_file">Cannot open the selected file</string>
+    <string name="toolpkg_error_copy_to_temp_failed">Failed to copy the selected file to the temporary directory</string>
+    <string name="workspace_empty">Workspace is empty</string>
+    <string name="package_author_label">Author: %1$s</string>
 </resources>

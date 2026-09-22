@@ -392,7 +392,7 @@ private fun stageComposeDslPickedFile(
         targetFile.outputStream().use { output ->
             input.copyTo(output)
         }
-    } ?: throw IllegalStateException("无法打开所选文件")
+    } ?: throw IllegalStateException(context.getString(com.ai.assistance.operit.R.string.toolpkg_error_open_selected_file))
     return targetFile
 }
 
@@ -581,7 +581,9 @@ fun ToolPkgComposeDslToolScreen(
                         pending.onComplete(
                             Result.failure(
                                 IllegalStateException(
-                                    error.message?.trim().orEmpty().ifBlank { "复制所选文件到临时目录失败" }
+                                    error.message?.trim().orEmpty().ifBlank {
+                                        context.getString(com.ai.assistance.operit.R.string.toolpkg_error_copy_to_temp_failed)
+                                    }
                                 )
                             )
                         )
