@@ -327,7 +327,10 @@ fun buildPublishArtifactDescriptor(
 ): PublishArtifactDescriptor {
     val runtimePackageId = localArtifact.packageName.trim().ifBlank { localArtifact.packageName }
     if (publishContext == null) {
-        validateStandaloneArtifactRuntimePackageId(runtimePackageId)
+        validateStandaloneArtifactRuntimePackageId(
+            runtimePackageId,
+            "Package ID `$runtimePackageId` cannot produce a stable market item ID. Use a package ID containing English letters or digits (optionally -, _, .) and publish again."
+        )
     }
     val normalizedRuntimePackageId = normalizeMarketArtifactId(runtimePackageId)
     val contextRuntimePackageId = publishContext?.runtimePackageId?.trim().orEmpty()

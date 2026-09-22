@@ -682,21 +682,42 @@ private fun notificationKindColor(kind: String): Color {
 @Composable
 private fun relativeTime(isoDate: String): String {
     if (isoDate.isBlank()) return ""
-    return try {
+
+    // Compute the kind outside any branch so composable reads are unconditional.
+    sealed interface Relative {
+        data object JustNow : Relative
+        data class Minutes(val value: Long) : Relative
+        data class Hours(val value: Long) : Relative
+        data class Days(val value: Long) : Relative
+        data class Months(val value: Long) : Relative
+        data class Years(val value: Long) : Relative
+        data class Fallback(val raw: String) : Relative
+    }
+
+    val relative: Relative = try {
         val instant = java.time.Instant.parse(isoDate)
         val now = java.time.Instant.now()
-        val duration = java.time.Duration.between(instant, now)
-        val seconds = duration.seconds
+        val seconds = java.time.Duration.between(instant, now).seconds
         when {
-            seconds < 60 -> stringResource(R.string.market_time_just_now)
-            seconds < 3600 -> stringResource(R.string.market_time_minutes_ago, seconds / 60)
-            seconds < 86400 -> stringResource(R.string.market_time_hours_ago, seconds / 3600)
-            seconds < 2592000 -> stringResource(R.string.market_time_days_ago, seconds / 86400)
-            seconds < 31104000 -> stringResource(R.string.market_time_months_ago, seconds / 2592000)
-            else -> stringResource(R.string.market_time_years_ago, seconds / 31104000)
+            seconds < 60 -> Relative.JustNow
+            seconds < 3600 -> Relative.Minutes(seconds / 60)
+            seconds < 86400 -> Relative.Hours(seconds / 3600)
+            seconds < 2592000 -> Relative.Days(seconds / 86400)
+            seconds < 31104000 -> Relative.Months(seconds / 2592000)
+            else -> Relative.Years(seconds / 31104000)
         }
     } catch (e: Exception) {
-        isoDate.take(16).replace("T", " ")
+        Relative.Fallback(isoDate.take(16).replace("T", " "))
+    }
+
+    return when (relative) {
+        is Relative.JustNow -> stringResource(R.string.market_time_just_now)
+        is Relative.Minutes -> stringResource(R.string.market_time_minutes_ago, relative.value)
+        is Relative.Hours -> stringResource(R.string.market_time_hours_ago, relative.value)
+        is Relative.Days -> stringResource(R.string.market_time_days_ago, relative.value)
+        is Relative.Months -> stringResource(R.string.market_time_months_ago, relative.value)
+        is Relative.Years -> stringResource(R.string.market_time_years_ago, relative.value)
+        is Relative.Fallback -> relative.raw
     }
 }
 

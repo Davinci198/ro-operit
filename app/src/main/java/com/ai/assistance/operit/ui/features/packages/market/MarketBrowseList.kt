@@ -169,6 +169,7 @@ fun <T> MarketBrowseList(
                                 items = items,
                                 itemKey = itemKey,
                                 updatedAtSelector = updatedAtSelector,
+                                fallbackDateLabel = stringResource(R.string.market_time_earlier),
                                 itemContent = itemContent
                             )
                         } else {
@@ -281,11 +282,12 @@ private fun <T> LazyListScope.groupedMarketItems(
     items: List<T>,
     itemKey: (T) -> Any,
     updatedAtSelector: (T) -> String,
+    fallbackDateLabel: String,
     itemContent: @Composable (T) -> Unit
 ) {
     val groupedItems =
         items.groupBy { item ->
-            resolveMarketUpdatedDateLabel(updatedAtSelector(item), stringResource(R.string.market_time_earlier))
+            resolveMarketUpdatedDateLabel(updatedAtSelector(item), fallbackDateLabel)
         }
 
     groupedItems.forEach { (dateLabel, groupItems) ->
