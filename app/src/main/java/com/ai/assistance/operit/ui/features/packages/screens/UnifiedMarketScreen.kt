@@ -679,45 +679,46 @@ private fun notificationKindColor(kind: String): Color {
     }
 }
 
+/** Relative-time kind, computed outside composable branches. */
+private sealed interface MarketRelativeTime {
+    data object JustNow : MarketRelativeTime
+    data class Minutes(val value: Long) : MarketRelativeTime
+    data class Hours(val value: Long) : MarketRelativeTime
+    data class Days(val value: Long) : MarketRelativeTime
+    data class Months(val value: Long) : MarketRelativeTime
+    data class Years(val value: Long) : MarketRelativeTime
+    data class Fallback(val raw: String) : MarketRelativeTime
+}
+
 @Composable
 private fun relativeTime(isoDate: String): String {
     if (isoDate.isBlank()) return ""
 
     // Compute the kind outside any branch so composable reads are unconditional.
-    sealed interface Relative {
-        data object JustNow : Relative
-        data class Minutes(val value: Long) : Relative
-        data class Hours(val value: Long) : Relative
-        data class Days(val value: Long) : Relative
-        data class Months(val value: Long) : Relative
-        data class Years(val value: Long) : Relative
-        data class Fallback(val raw: String) : Relative
-    }
-
-    val relative: Relative = try {
+    val relative: MarketRelativeTime = try {
         val instant = java.time.Instant.parse(isoDate)
         val now = java.time.Instant.now()
         val seconds = java.time.Duration.between(instant, now).seconds
         when {
-            seconds < 60 -> Relative.JustNow
-            seconds < 3600 -> Relative.Minutes(seconds / 60)
-            seconds < 86400 -> Relative.Hours(seconds / 3600)
-            seconds < 2592000 -> Relative.Days(seconds / 86400)
-            seconds < 31104000 -> Relative.Months(seconds / 2592000)
-            else -> Relative.Years(seconds / 31104000)
+            seconds < 60 -> MarketRelativeTime.JustNow
+            seconds < 3600 -> MarketRelativeTime.Minutes(seconds / 60)
+            seconds < 86400 -> MarketRelativeTime.Hours(seconds / 3600)
+            seconds < 2592000 -> MarketRelativeTime.Days(seconds / 86400)
+            seconds < 31104000 -> MarketRelativeTime.Months(seconds / 2592000)
+            else -> MarketRelativeTime.Years(seconds / 31104000)
         }
     } catch (e: Exception) {
-        Relative.Fallback(isoDate.take(16).replace("T", " "))
+        MarketRelativeTime.Fallback(isoDate.take(16).replace("T", " "))
     }
 
     return when (relative) {
-        is Relative.JustNow -> stringResource(R.string.market_time_just_now)
-        is Relative.Minutes -> stringResource(R.string.market_time_minutes_ago, relative.value)
-        is Relative.Hours -> stringResource(R.string.market_time_hours_ago, relative.value)
-        is Relative.Days -> stringResource(R.string.market_time_days_ago, relative.value)
-        is Relative.Months -> stringResource(R.string.market_time_months_ago, relative.value)
-        is Relative.Years -> stringResource(R.string.market_time_years_ago, relative.value)
-        is Relative.Fallback -> relative.raw
+        is MarketRelativeTime.JustNow -> stringResource(R.string.market_time_just_now)
+        is MarketRelativeTime.Minutes -> stringResource(R.string.market_time_minutes_ago, relative.value)
+        is MarketRelativeTime.Hours -> stringResource(R.string.market_time_hours_ago, relative.value)
+        is MarketRelativeTime.Days -> stringResource(R.string.market_time_days_ago, relative.value)
+        is MarketRelativeTime.Months -> stringResource(R.string.market_time_months_ago, relative.value)
+        is MarketRelativeTime.Years -> stringResource(R.string.market_time_years_ago, relative.value)
+        is MarketRelativeTime.Fallback -> relative.raw
     }
 }
 
