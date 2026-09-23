@@ -30,7 +30,12 @@ issue: https://github.com/Davinci198/fix-operit/issues/853
 
 ## PR
 
-待创建
+- Landed on `main` via `PendingMessageQueueStore` + `ChatViewModel` ownership per `chatId`.
+- `AIChatScreen` reads `pendingMessageQueueStates[chatId]` (no `remember(chatId)` queue).
+- Test: `app/src/test/java/com/ai/assistance/operit/ui/features/chat/viewmodel/PendingMessageQueueStoreTest.kt`.
+- Status note added 2026-09-23 on branch `docs/pending-work-landing`.
+
+[DONE]
 
 ## 完成状态
 
