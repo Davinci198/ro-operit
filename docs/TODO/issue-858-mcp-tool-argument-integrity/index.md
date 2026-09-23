@@ -26,4 +26,8 @@ issue: https://github.com/Davinci198/fix-operit/issues/858
 
 ## PR
 
-待创建
+- Landed on `main` in `17df7f9e` / `45b17519` (block corrupted remote MCP tool arguments).
+- `MCPToolExecutor.validateParameters` rejects params containing `U+FFFD`; logs parameter name, replacement count, character/UTF-8 offset only (never argument content).
+- Status note added 2026-09-23 on branch `docs/pending-work-landing`.
+
+[DONE]

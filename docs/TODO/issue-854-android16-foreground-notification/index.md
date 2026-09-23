@@ -23,4 +23,8 @@ issue: https://github.com/Davinci198/fix-operit/issues/854
 
 ## PR
 
-待创建
+- Landed on `main` in `767a8652` (fix: align chat, remote MCP, and Android 16 notifications #854, #855, #756).
+- `coreKtx = "1.18.0"` in `gradle/libs.versions.toml`; no channel/action/text changes.
+- Status note added 2026-09-23 on branch `docs/pending-work-landing`.
+
+[DONE]
