@@ -36,7 +36,7 @@ last_reviewed: 2026-07-14
 
 - `config/build-system/artifacts/`
 - `docs/licenses/` 中与外部制品对应的记录
-- `docs/TODO/refactor_building_sys/`
+- `docs/.META/Legacy/TODO/refactor_building_sys/`
 
 本步骤不修改：
 

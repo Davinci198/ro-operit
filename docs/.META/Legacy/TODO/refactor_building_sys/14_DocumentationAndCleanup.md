@@ -55,7 +55,7 @@ last_reviewed: 2026-07-14
 - web-chat 与 example 的构建错误提示
 - 补丁发布相关文档
 - `Repo_Arch_Basic.md`
-- `docs/TODO/refactor_building_sys/`
+- `docs/.META/Legacy/TODO/refactor_building_sys/`
 
 本步骤不修改：
 

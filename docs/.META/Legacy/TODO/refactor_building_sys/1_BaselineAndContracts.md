@@ -34,7 +34,7 @@ last_reviewed: 2026-07-14
 
 - `config/build-system/`
 - `ci/script/build_inventory/`
-- `docs/TODO/refactor_building_sys/`
+- `docs/.META/Legacy/TODO/refactor_building_sys/`
 
 本步骤不修改：
 
