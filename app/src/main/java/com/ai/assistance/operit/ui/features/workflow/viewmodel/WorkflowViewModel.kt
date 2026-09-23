@@ -971,7 +971,11 @@ class WorkflowViewModel(application: Application) : AndroidViewModel(application
             name = context.getString(R.string.workflow_trigger_voice),
             triggerType = "speech",
             triggerConfig = mapOf(
-                "pattern" to ".*(打开|启动).*(对话|聊天|悬浮窗).*",
+                // Accepts the original Chinese phrasing and Romanian voice commands for the
+                // same intent. Romanian speech recognition usually drops diacritics, so every
+                // accented letter also accepts its plain form (a/ă, s/ș, t/ț, plus the legacy ţ).
+                "pattern" to
+                    """.*(打开|启动).*(对话|聊天|悬浮窗).*|.*(?:deschid(?:e(?:[țţ]i)?)?|porn(?:esc|e[sș]te|i[tțţ]i)|lanse(?:az[aă]|z)|active(?:az[aă]|z)|start)(?:[ -]mi)?.*(conversa[țtţ]i[aăe]?|chat|fereastr[aă](?:\s+flotan[tțţ][aă])?|dialog|discu[țtţ]ie|asistent(?:ul)?).*""",
                 "ignore_case" to "true",
                 "require_final" to "true",
                 "cooldown_ms" to "3000"
