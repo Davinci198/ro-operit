@@ -8106,8 +8106,8 @@ Vă rugăm să sprijiniți autorul original și să fiți atenți la revânzare.
     <string name="plugin_error_unstable_market_id">ID-ul de pachet „%1$s” nu poate genera un ID de articol de market stabil. Folosește un ID de pachet care conține litere englezești sau cifre (opțional -、_、.) și publică din nou.</string>
 
     <!-- Exemple HTTP extern pentru chat -->
-    <string name="ext_http_example_message_sync">你好</string>
-    <string name="ext_http_example_message_async">你好</string>
-    <string name="ext_http_example_message_broadcast">你好</string>
+    <string name="ext_http_example_message_sync">Bună</string>
+    <string name="ext_http_example_message_async">Bună</string>
+    <string name="ext_http_example_message_broadcast">Bună</string>
 
 </resources>
