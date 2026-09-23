@@ -107,7 +107,7 @@ jobs:
         run: bash ci/script/download_android_dependencies.sh full "manual-deps"
 
       - name: Prepare deps
-        run: python3 ci/script/prepare_android_dependencies.py --profile full --archives "manual-deps" --repository "$GITHUB_WORKSPACE" --clean || python3 ci/script/prepare_android_dependencies.py --profile full --archives "manual-deps" --repository "$GITHUB_WORKSPACE"
+        run: python3 ci/script/prepare_android_dependencies.py --profile full --archives "manual-deps" --repository "$GITHUB_WORKSPACE"
 
       - name: Setup DragonBones Prebuilt AAR
         run: |
@@ -147,8 +147,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: fix-operit-clone-${{ github.run_number }}
-          path: |
-            app/build/outputs/apk/clone/debug/*.apk
-            app/build/outputs/apk/clone/release/*.apk
+          path: app/build/outputs/apk/**/*.apk
           if-no-files-found: error
           retention-days: 14
