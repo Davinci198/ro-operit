@@ -43,12 +43,12 @@ internal object McpConfigImportParser {
         val root = try {
             JsonParser.parseString(jsonConfig)
         } catch (e: Exception) {
-            throw IllegalArgumentException("配置不是有效的 JSON", e)
+            throw IllegalArgumentException("Config is not valid JSON", e)
         }
 
-        require(root.isJsonObject) { "配置根节点必须是对象" }
+        require(root.isJsonObject) { "Config root must be a JSON object" }
         val mcpServers = root.asJsonObject.requiredObject("mcpServers")
-        require(mcpServers.entrySet().isNotEmpty()) { "mcpServers 不能为空" }
+        require(mcpServers.entrySet().isNotEmpty()) { "mcpServers must not be empty" }
 
         return McpConfigImport(
             servers = mcpServers.entrySet().map { (serverId, configElement) ->
@@ -58,8 +58,8 @@ internal object McpConfigImportParser {
     }
 
     private fun parseServer(serverId: String, configElement: JsonElement): McpImportedServer {
-        require(serverId.isNotBlank()) { "mcpServers 中存在空服务器 ID" }
-        require(configElement.isJsonObject) { "mcpServers.$serverId 必须是对象" }
+        require(serverId.isNotBlank()) { "mcpServers contains an empty server id" }
+        require(configElement.isJsonObject) { "mcpServers.$serverId must be a JSON object" }
 
         val config = configElement.asJsonObject
         val declaredType = config.optionalString("type")
@@ -76,7 +76,7 @@ internal object McpConfigImportParser {
         declaredType: String?
     ): StdioMcpImportedServer {
         require(declaredType == null || declaredType == STDIO_TYPE) {
-            "mcpServers.$serverId 同时声明了 command 和非 stdio transport"
+            "mcpServers.$serverId declares both command and a non-stdio transport"
         }
 
         return StdioMcpImportedServer(
@@ -97,10 +97,10 @@ internal object McpConfigImportParser {
         val connectionType = when (declaredType) {
             STREAMABLE_HTTP_TYPE -> "httpStream"
             SSE_TYPE -> SSE_TYPE
-            STDIO_TYPE -> throw IllegalArgumentException("mcpServers.$serverId 缺少 command")
-            null -> throw IllegalArgumentException("mcpServers.$serverId 缺少 command 或 type")
+            STDIO_TYPE -> throw IllegalArgumentException("mcpServers.$serverId is missing command")
+            null -> throw IllegalArgumentException("mcpServers.$serverId is missing command or type")
             else -> throw IllegalArgumentException(
-                "mcpServers.$serverId 使用了不支持的 transport: $declaredType"
+                "mcpServers.$serverId uses an unsupported transport: $declaredType"
             )
         }
 
@@ -115,38 +115,38 @@ internal object McpConfigImportParser {
 
     private fun JsonObject.requiredObject(field: String): JsonObject {
         val value = get(field)
-            ?: throw IllegalArgumentException("配置中没有找到 $field 字段")
-        require(value.isJsonObject) { "$field 必须是对象" }
+            ?: throw IllegalArgumentException("Config is missing the $field field")
+        require(value.isJsonObject) { "$field must be a JSON object" }
         return value.asJsonObject
     }
 
     private fun JsonObject.requiredNonBlankString(field: String, serverId: String): String {
         val value = optionalString(field)
-            ?: throw IllegalArgumentException("mcpServers.$serverId 缺少 $field")
-        require(value.isNotBlank()) { "mcpServers.$serverId 的 $field 不能为空" }
+            ?: throw IllegalArgumentException("mcpServers.$serverId is missing $field")
+        require(value.isNotBlank()) { "mcpServers.$serverId field $field must not be blank" }
         return value.trim()
     }
 
     private fun JsonObject.optionalString(field: String): String? {
         val value = get(field) ?: return null
-        require(value.isJsonPrimitive && value.asJsonPrimitive.isString) { "$field 必须是字符串" }
+        require(value.isJsonPrimitive && value.asJsonPrimitive.isString) { "$field must be a string" }
         return value.asString
     }
 
     private fun JsonObject.optionalBoolean(field: String, serverId: String): Boolean {
         val value = get(field) ?: return false
         require(value.isJsonPrimitive && value.asJsonPrimitive.isBoolean) {
-            "mcpServers.$serverId 的 $field 必须是布尔值"
+            "mcpServers.$serverId field $field must be a boolean"
         }
         return value.asBoolean
     }
 
     private fun JsonObject.optionalStringList(field: String, serverId: String): List<String> {
         val value = get(field) ?: return emptyList()
-        require(value.isJsonArray) { "mcpServers.$serverId 的 $field 必须是字符串数组" }
+        require(value.isJsonArray) { "mcpServers.$serverId field $field must be an array of strings" }
         return value.asJsonArray.mapIndexed { index, item ->
             require(item.isJsonPrimitive && item.asJsonPrimitive.isString) {
-                "mcpServers.$serverId 的 $field[$index] 必须是字符串"
+                "mcpServers.$serverId field $field[$index] must be a string"
             }
             item.asString
         }
@@ -154,11 +154,11 @@ internal object McpConfigImportParser {
 
     private fun JsonObject.optionalStringMap(field: String, serverId: String): Map<String, String> {
         val value = get(field) ?: return emptyMap()
-        require(value.isJsonObject) { "mcpServers.$serverId 的 $field 必须是对象" }
+        require(value.isJsonObject) { "mcpServers.$serverId field $field must be a JSON object" }
         return value.asJsonObject.entrySet().associate { (key, item) ->
-            require(key.isNotBlank()) { "mcpServers.$serverId 的 $field 包含空键" }
+            require(key.isNotBlank()) { "mcpServers.$serverId field $field contains an empty key" }
             require(item.isJsonPrimitive && item.asJsonPrimitive.isString) {
-                "mcpServers.$serverId 的 $field.$key 必须是字符串"
+                "mcpServers.$serverId field $field.$key must be a string"
             }
             key to item.asString
         }

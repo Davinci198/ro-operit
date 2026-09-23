@@ -425,7 +425,9 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
                 toolName = tool.name,
                 success = false,
                 result = StringResultData(""),
-                error = "当前 UI 控制器模型未启用识图能力，请在设置-功能模型中为 UI 控制器功能选择支持图片理解的模型后再试。"
+                error = "The current UI controller model does not have image understanding enabled. " +
+                    "In Settings - Feature models, choose a model that supports image understanding for " +
+                    "the UI controller feature, then try again."
             )
         }
 

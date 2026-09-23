@@ -536,7 +536,7 @@ class MCPLocalServer private constructor(private val context: Context) {
         autoApprove: List<String>? = emptyList()
     ) {
         val normalizedCommand = command?.trim()
-        require(!normalizedCommand.isNullOrEmpty()) { "MCP服务器 $serverId 的 command 不能为空" }
+        require(!normalizedCommand.isNullOrEmpty()) { "MCP server $serverId command must not be blank" }
 
         val updatedServerConfig = MCPConfig.ServerConfig(
             command = normalizedCommand,
@@ -607,7 +607,7 @@ class MCPLocalServer private constructor(private val context: Context) {
                         Exception(
                             context.getString(
                                 R.string.mcp_local_json_format_error,
-                                e.message ?: "配置字段无效"
+                                e.message ?: "Invalid config field"
                             )
                         )
                     )
