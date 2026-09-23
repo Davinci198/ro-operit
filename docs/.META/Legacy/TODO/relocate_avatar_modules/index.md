@@ -21,7 +21,7 @@ For_Agent: 将模型模块集中到 avator 目录
 - `avator/fbx/`
 - `avator/mmd/`
 - `settings.gradle.kts`
-- `.github/workflows/android-build.yml`
+- `.github/workflows/release-clone.yml`
 - `Repo_Arch_Basic.md`
 - `docs/.META/Legacy/TODO/native_dependency_fetchcontent/index.md`
 

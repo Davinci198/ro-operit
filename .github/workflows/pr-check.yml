@@ -94,25 +94,15 @@ jobs:
             --base "${{ steps.plan.outputs.base_sha }}" \
             --candidate "${{ steps.plan.outputs.candidate_sha }}"
 
-      - name: Check changed YAML and Actions workflows
+      - name: Check YAML and Actions workflows
         id: yaml
-        if: steps.plan.outputs.yaml == 'true'
         continue-on-error: true
-        env:
-          BASE_SHA: ${{ steps.plan.outputs.base_sha }}
-          CANDIDATE_SHA: ${{ steps.plan.outputs.candidate_sha }}
         shell: bash
         run: |
           set -euo pipefail
-          yaml_list="$RUNNER_TEMP/changed-yaml.list"
-          git diff --name-only --no-renames --diff-filter=ACMRT -z \
-            "$BASE_SHA" "$CANDIDATE_SHA" -- '*.yml' '*.yaml' > "$yaml_list"
-          mapfile -d '' -t yaml_files < "$yaml_list"
-
-          workflow_list="$RUNNER_TEMP/changed-workflows.list"
-          : > "$workflow_list"
+          mapfile -t yaml_files < <(git ls-files '*.yml' '*.yaml')
           if (( ${#yaml_files[@]} == 0 )); then
-            echo "No added or modified YAML files."
+            echo "No tracked YAML files."
             exit 0
           fi
 
@@ -121,27 +111,22 @@ jobs:
             'ARGV.each { |path| Psych.parse_file(path); puts "YAML OK: #{path}" }' \
             -- "${yaml_files[@]}"
 
-          for path in "${yaml_files[@]}"; do
-            case "$path" in
-              .github/workflows/*.yml|.github/workflows/*.yaml)
-                printf '%s\0' "$path" >> "$workflow_list"
-                ;;
-            esac
-          done
-
-          if [[ -s "$workflow_list" ]]; then
-            mapfile -d '' -t workflow_files < "$workflow_list"
-            actionlint_archive="$RUNNER_TEMP/actionlint.tar.gz"
-            actionlint_dir="$RUNNER_TEMP/actionlint"
-            curl --fail --location --silent --show-error \
-              "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz" \
-              --output "$actionlint_archive"
-            echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $actionlint_archive" \
-              | sha256sum --check --strict
-            mkdir -p "$actionlint_dir"
-            tar -xzf "$actionlint_archive" -C "$actionlint_dir"
-            "$actionlint_dir/actionlint" "${workflow_files[@]}"
+          mapfile -t workflow_files < <(git ls-files '.github/workflows/*.yml' '.github/workflows/*.yaml')
+          if (( ${#workflow_files[@]} == 0 )); then
+            echo "No tracked Actions workflow files."
+            exit 0
           fi
+
+          actionlint_archive="$RUNNER_TEMP/actionlint.tar.gz"
+          actionlint_dir="$RUNNER_TEMP/actionlint"
+          curl --fail --location --silent --show-error \
+            "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz" \
+            --output "$actionlint_archive"
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $actionlint_archive" \
+            | sha256sum --check --strict
+          mkdir -p "$actionlint_dir"
+          tar -xzf "$actionlint_archive" -C "$actionlint_dir"
+          "$actionlint_dir/actionlint" "${workflow_files[@]}"
 
       - name: Require successful fast checks
         if: always()
@@ -153,7 +138,7 @@ jobs:
           LOCALIZATION_OUTCOME: ${{ steps.localization.outcome }}
           YAML_OUTCOME: ${{ steps.yaml.outcome }}
           LOCALIZATION_REQUIRED: ${{ steps.plan.outputs.localization }}
-          YAML_REQUIRED: ${{ steps.plan.outputs.yaml }}
+          YAML_REQUIRED: "true"
         shell: bash
         run: |
           set -euo pipefail
