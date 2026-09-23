@@ -32,7 +32,7 @@ For_Agent: 对项目大规模动工前按本规范协作
 - 别人就可以让Agent根据该文档的git历史捞出对应的differ，没有压缩的话
 - 完成最后一个更改时，你可以上传您的详细文档、实验记录、稳定API，并执行自动化i18n
 - squansh时尽量不要把i18n和文档更改放进一个pr，这会导致git历史不那么整洁
-- 用单独的pr将您的文件夹移入[docs/.Meta/Legacy/TODO](../.Meta/Legacy/TODO)
+- 用单独的pr将您的文件夹移入[docs/.META/Legacy/TODO](../.META/Legacy/TODO)
 
 ## 如果你想鸽了
 
