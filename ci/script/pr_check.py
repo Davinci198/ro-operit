@@ -39,8 +39,9 @@ TOOLPKG_PATTERNS = (
     "tools/example_packages/sync_example_packages.py",
 )
 ANDROID_FULL_PATTERNS = (
-    ".github/workflows/android-build.yml",
+    ".github/workflows/android-build-optimized.yml",
     ".github/workflows/pr-check.yml",
+    ".github/workflows/release-clone.yml",
     ".gitmodules",
     "app/build.gradle.kts",
     "app/config/**",
