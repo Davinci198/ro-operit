@@ -29,7 +29,6 @@ env:
   NODE_VERSION: '22'
   ANDROID_NDK_VERSION: '27.0.12077973'
   ANDROID_CMAKE_VERSION: '3.22.1'
-  _JAVA_OPTIONS: "-Xmx4g"
 
 jobs:
   build:
@@ -139,8 +138,26 @@ jobs:
         run: |
           case "${{ github.event_name }}" in push) TASK=":app:assembleCloneDebug" ;; workflow_dispatch) TASK="${{ inputs.gradle_task }}" ;; *) TASK=":app:assembleCloneDebug" ;; esac
           chmod +x ./gradlew
-          ./gradlew $TASK --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx4g -Xms2g" | tee gradle.log
-          grep "BUILD SUCCESSFUL" gradle.log
+          # Memoria se seteaza in gradle.properties, NU prin -D: kotlin.daemon.jvmargs se citeste de acolo,
+          # iar valoarea din repo (3g) nu ajunge pentru acest modul -> daemon-ul Kotlin moare cu
+          # OutOfMemoryError in ASM Frame analysis, la :app:compileCloneDebugKotlin.
+          # Ultima valoare din fisier castiga, deci append pastreaza setarile proprii ale proiectului.
+          {
+            echo ""
+            echo "# CI memory overrides (android-build-optimized.yml)"
+            echo "org.gradle.jvmargs=-Xmx8g -Xms2g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -Dfile.encoding=UTF-8"
+            echo "org.gradle.workers.max=1"
+            echo "org.gradle.parallel=false"
+            echo "kotlin.daemon.jvmargs=-Xmx6g -Xms1g -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8"
+          } >> gradle.properties
+          ./gradlew $TASK --no-daemon --max-workers=1 2>&1 | tee gradle.log
+          GRADLE_STATUS=${PIPESTATUS[0]}
+          if (( GRADLE_STATUS != 0 )) || ! grep -qi "BUILD SUCCESSFUL" gradle.log; then
+            echo "::error::Gradle exited with $GRADLE_STATUS without reporting BUILD SUCCESSFUL"
+            tail -200 gradle.log
+            exit 1
+          fi
+          find app/build/outputs -name '*.apk' -type f -exec ls -lh {} +
 
       - name: Upload APK Clone
         if: success()
@@ -150,3 +167,15 @@ jobs:
           path: app/build/outputs/apk/**/*.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload log on fail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-log-${{ github.run_number }}
+          path: |
+            gradle.log
+            app/build/outputs/logs/*
+            llm/mnn/.cxx/**/CMakeFiles/CMakeOutput.log
+          if-no-files-found: warn
+          retention-days: 7
