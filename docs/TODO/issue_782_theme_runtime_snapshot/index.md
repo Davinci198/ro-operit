@@ -1,6 +1,6 @@
 ---
 title: Issue 782 Theme Runtime Snapshot
-fork: https://github.com/AAswordman/Operit
+fork: https://github.com/Davinci198/fix-operit
 branch: review/pr-825-theme-persistence
 status: implementation_complete
 ---

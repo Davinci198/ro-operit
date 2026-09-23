@@ -3,20 +3,15 @@
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/github/last-commit/AAswordman/Operit" alt="Last Commit">
+  <img src="https://img.shields.io/github/last-commit/Davinci198/fix-operit" alt="Last Commit">
   <img src="https://img.shields.io/badge/Platform-Android_8.0%2B-brightgreen.svg" alt="Platform">
-  <a href="https://github.com/AAswordman/Operit/releases/latest"><img src="https://img.shields.io/github/v/release/AAswordman/Operit" alt="Latest Release"></a>
+  <a href="https://github.com/Davinci198/fix-operit/releases/latest"><img src="https://img.shields.io/github/v/release/Davinci198/fix-operit" alt="Latest Release"></a>
   <br>
-  <a href="https://github.com/AAswordman/Operit/stargazers"><img src="https://img.shields.io/github/stars/AAswordman/Operit" alt="GitHub Stars"></a>
-  <a href="https://aaswordman.github.io/OperitWeb"><img src="https://img.shields.io/badge/📖-User_Guide-blue.svg" alt="User Guide"></a>
-  <a href="https://www.patreon.com/c/aaswordsman"><img src="https://img.shields.io/badge/🌍-Patreon-f96854.svg" alt="Patreon"></a>
-  <a href="https://afdian.com/a/aaswordsman"><img src="https://img.shields.io/badge/💖-Support_Development-ff6b6b.svg" alt="Support Development"></a>
+  <a href="https://github.com/Davinci198/fix-operit/stargazers"><img src="https://img.shields.io/github/stars/Davinci198/fix-operit" alt="GitHub Stars"></a>
+  <a href="https://github.com/Davinci198/fix-operit"><img src="https://img.shields.io/badge/📖-User_Guide-blue.svg" alt="User Guide"></a>
   <a href="docs/doc-src/dev-core/CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions Welcome"></a>
   <br>
-  <a href="mailto:aaswordsman@foxmail.com"><img src="https://img.shields.io/badge/📧-Email-red.svg" alt="Email"></a>
-  <a href="https://qm.qq.com/q/Sa4fKEH7sO"><img src="https://img.shields.io/badge/💬-QQ_Group-blue.svg" alt="QQ Group"></a>
-  <a href="https://discord.gg/YnV9MWurRF"><img src="https://img.shields.io/badge/🎮-Discord-5865F2.svg" alt="Discord"></a>
-  <a href="https://github.com/AAswordman/Operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
+  <a href="https://github.com/Davinci198/fix-operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
 </div>
 
 <div align="center">
@@ -176,10 +171,10 @@ Rich MCP ecosystem
 | Item | Description |
 |------|-------------|
 | 📋 **System Requirements** | Android 8.0+ (API 26+), 6GB+ RAM recommended, 5GB+ free storage |
-| 📥 **Download & Install** | Download the latest APK from the [Release Page](https://github.com/AAswordman/Operit/releases) |
+| 📥 **Download & Install** | Download the latest APK from the [Release Page](https://github.com/Davinci198/fix-operit/releases) |
 | 📖 **User Guide** | [Official Website](https://operit.app) with detailed tutorials and examples |
 
-> **Security Warning:** To ensure your data security, please download this application exclusively from the official [Release Page](https://github.com/AAswordman/Operit/releases) or the [Official Website](https://operit.app). Installation packages from unofficial sources may be maliciously modified, potentially leading to privacy leaks or device monitoring.
+> **Security Warning:** To ensure your data security, please download this application exclusively from the official [Release Page](https://github.com/Davinci198/fix-operit/releases) or the [Official Website](https://operit.app). Installation packages from unofficial sources may be maliciously modified, potentially leading to privacy leaks or device monitoring.
 
 **Installation Steps:** Download APK → Install & Launch → Follow Setup Guide → Start Using ✨
 
@@ -433,7 +428,7 @@ Rich MCP ecosystem
 </tr>
 </table>
 
-> 📝 **Full Changelog**: Visit the [Releases Page](https://github.com/AAswordman/Operit/releases) for detailed updates on each version
+> 📝 **Full Changelog**: Visit the [Releases Page](https://github.com/Davinci198/fix-operit/releases) for detailed updates on each version
 
 ---
 
@@ -444,22 +439,19 @@ Join the Operit open-source ecosystem! We welcome all types of contributions: th
 **Developer Notes:**
 - 📚 [Contribution Guide](docs/doc-src/dev-core/CONTRIBUTING.md) | [Script Development Guide (Chinese)](docs/SCRIPT_DEV_GUIDE.md)
 - 📦 Building requires downloading non-model dependency archives from [Google Drive](https://drive.google.com/drive/folders/1g-Q_i7cf6Ua4KX9ZM6V282EEZvTVVfF7?usp=sharing) (`subpack.zip`, `jniLibs.zip`, `libs.zip`); the default local STT model is fetched and verified during Android builds from `app/config/stt-model-assets.properties`
-- 💬 Join community discussions: [QQ Group](https://qm.qq.com/q/Sa4fKEH7sO) | [Discord](https://discord.gg/YnV9MWurRF)
 
 ### 💖 Contributors
 
 Thanks to all who have contributed to Operit AI!
 
-<a href="https://github.com/AAswordman/Operit/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=AAswordman/Operit" />
+<a href="https://github.com/Davinci198/fix-operit/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Davinci198/fix-operit" />
 </a>
 
 ## 💖 Support Development
 
 If Operit AI has been helpful to you, you can voluntarily support its ongoing development and basic project maintenance:
 
-- For international support, use [Patreon](https://www.patreon.com/c/aaswordsman)
-- For mainland China support, use [Afdian](https://afdian.com/a/aaswordsman)
 
 - Support is entirely voluntary and does not unlock any features, quotas, updates, support replies, or other perks
 - Choosing not to support does not affect normal usage, updates, or access to the open-source code
@@ -480,7 +472,7 @@ In simple terms, this means:
 
 ## 📝 Feedback
 
-Encountered a problem or have a suggestion? Welcome to [submit an Issue](https://github.com/AAswordman/Operit/issues)!
+Encountered a problem or have a suggestion? Welcome to [submit an Issue](https://github.com/Davinci198/fix-operit/issues)!
 
 **Submission Guidelines:**
 - 📝 Clearly describe the problem/suggestion with reproduction steps

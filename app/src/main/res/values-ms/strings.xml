@@ -542,7 +542,7 @@
     <string name="about_title">Perihal RO-Operit</string>
     <string name="about_version">Versi: %1$s</string>
     <string name="about_description">RO-Operit ialah aplikasi pembantu pintar yang membantu pengguna menggunakan peranti dengan lebih cekap, menyediakan analisis antara muka, perbualan sembang dan fungsi lain.</string>
-    <string name="about_developer">Pembangun: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
+    <string name="about_developer">Pembangun: &lt;a href="https://github.com/Davinci198"&gt;Davinci198&lt;/a&gt;</string>
     <string name="about_contact">Hubungi kami: aaswordsman@foxmail.com</string>
     <string name="about_website">&lt;a href="https://github.com/Davinci198/fix-operit"&gt;GitHub: https://github.com/Davinci198/fix-operit&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 Operit. Hak cipta terpelihara.</string>
@@ -7436,4 +7436,77 @@ Kini anda boleh menggunakan mod AutoGLM di antara muka perbualan.</string>
     <string name="user_configuration_select">Pilih konfigurasi pengguna</string>
     <string name="user_configuration_unlock_notice">Konfigurasi ini dimigrasikan dalam keadaan terkunci daripada tetapan versi lama; menyimpan akan menghapus kunci seluruh dokumen.</string>
     <string name="workspace_empty">Ruang kerja kosong</string>
+
+    <!-- Data recovery screen -->
+    <string name="recovery_title">Data Rescue</string>
+    <string name="recovery_section_snapshot">Raw Snapshot</string>
+    <string name="recovery_snapshot_desc">Export packs the internal files, shared_prefs, datastore, databases and the Android/data package directory; import overwrites the current data.</string>
+    <string name="recovery_export_snapshot">Export snapshot</string>
+    <string name="recovery_import_snapshot">Import snapshot</string>
+    <string name="recovery_launch_main_app">Launch main app</string>
+    <string name="recovery_section_files">File management</string>
+    <string name="recovery_files_desc">This page does not open a file manager directly. To browse or export internal files manually, open MT Manager, add a "Local storage" repository, then pick Operit\'s data repository. provider: %1$s</string>
+    <string name="recovery_section_sql">SQL executor</string>
+    <string name="recovery_sql_chip_messages">messages size</string>
+    <string name="recovery_sql_chip_variants">variants size</string>
+    <string name="recovery_sql_chip_chats">chats fields</string>
+    <string name="recovery_sql_execute">Run</string>
+    <string name="recovery_import_dialog_title">Import raw snapshot</string>
+    <string name="recovery_import_dialog_message">Importing overwrites the current app data. Import this snapshot?</string>
+    <string name="recovery_import_confirm">Import</string>
+    <string name="recovery_cancel">Cancel</string>
+    <string name="recovery_status_started">Rescue process started</string>
+    <string name="recovery_affected_rows">Affected rows: %1$d</string>
+    <string name="recovery_query_result_rows">Query result: %1$d rows</string>
+    <string name="recovery_cannot_launch_main_app">Cannot launch the main app</string>
+    <string name="recovery_error_empty_sql">SQL is empty</string>
+    <string name="recovery_status_running_sql">Running SQL</string>
+    <string name="recovery_status_query_done">Query finished: %1$d rows</string>
+    <string name="recovery_status_sql_done">SQL finished</string>
+    <string name="recovery_status_exporting_snapshot">Exporting raw snapshot</string>
+    <string name="recovery_status_export_done">Raw snapshot export finished</string>
+    <string name="recovery_status_importing_snapshot">Importing raw snapshot</string>
+    <string name="recovery_status_import_done">Raw snapshot import finished, please restart the app</string>
+    <string name="recovery_progress_export_stage">Export: %1$s</string>
+    <string name="recovery_progress_import_stage">Import: %1$s</string>
+
+    <!-- Market notifications & relative time -->
+    <string name="market_notif_comment_new">New comment</string>
+    <string name="market_notif_comment_reply">Replied to your comment</string>
+    <string name="market_notif_review_approved">Approved</string>
+    <string name="market_notif_review_rejected">Rejected</string>
+    <string name="market_notif_review_changes">Changes required</string>
+    <string name="market_notif_entry_curated">Featured</string>
+    <string name="market_time_just_now">Just now</string>
+    <string name="market_time_minutes_ago">%1$d minutes ago</string>
+    <string name="market_time_hours_ago">%1$d hours ago</string>
+    <string name="market_time_days_ago">%1$d days ago</string>
+    <string name="market_time_months_ago">%1$d months ago</string>
+    <string name="market_time_years_ago">%1$d years ago</string>
+    <string name="market_duration_hours_minutes">%1$dh %2$dmin</string>
+    <string name="market_duration_hours">%1$dh</string>
+    <string name="market_duration_minutes">%1$dmin</string>
+    <string name="market_time_earlier">Earlier</string>
+    <string name="market_publish_login_required">Sign in with GitHub to publish %1$s.</string>
+
+    <!-- Log level labels -->
+    <string name="log_level_verbose">Verbose</string>
+    <string name="log_level_debug">Debug</string>
+    <string name="log_level_info">Info</string>
+    <string name="log_level_warn">Warning</string>
+    <string name="log_level_error">Error</string>
+    <string name="log_level_fatal">Fatal</string>
+    <string name="log_level_silent">Silent</string>
+    <string name="log_level_unknown">Unknown</string>
+
+    <!-- Plugin install errors -->
+    <string name="plugin_error_duplicate_builtin">A built-in plugin with the same name `%1$s` is already installed locally and cannot be overwritten directly.</string>
+    <string name="plugin_error_replace_failed">Failed to replace the installed plugin `%1$s`.</string>
+    <string name="plugin_error_unstable_market_id">Package ID "%1$s" cannot produce a stable market item ID. Use a package ID containing English letters or digits (optionally -, _, .) and publish again.</string>
+
+    <!-- External HTTP chat examples -->
+    <string name="ext_http_example_message_sync">Hello</string>
+    <string name="ext_http_example_message_async">Hello</string>
+    <string name="ext_http_example_message_broadcast">Hello</string>
+
 </resources>

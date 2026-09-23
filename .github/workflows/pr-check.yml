@@ -409,7 +409,9 @@ jobs:
           chmod +x ./gradlew
           tasks=(":app:testCloneDebugUnitTest")
           if [[ "$INSTRUMENTATION_REQUIRED" == "true" ]]; then
-            tasks+=(":app:compileDebugAndroidTestKotlin" ":app:compileDebugAndroidTestJavaWithJavac")
+            # Flavor-qualified task name: the unqualified one is ambiguous
+            # (clone vs standard product flavors) and fails task selection.
+            tasks+=(":app:compileCloneDebugAndroidTestKotlin" ":app:compileCloneDebugAndroidTestJavaWithJavac")
           fi
           # Explicit heap override: gradle.properties is tuned for ARM64 phone (4g);
           # CI runners need more heap for the full Kotlin compile (OOM fix, PR #9).
@@ -447,6 +449,7 @@ jobs:
             -Dkotlin.daemon.jvmargs="-Xmx3g" \
             --stacktrace
           if [[ "$INSTRUMENTATION_REQUIRED" == "true" ]]; then
-            ./gradlew :app:compileDebugAndroidTestKotlin :app:compileDebugAndroidTestJavaWithJavac \
+            # Flavor-qualified: see comment in "Run Android JVM checks" above.
+            ./gradlew :app:compileCloneDebugAndroidTestKotlin :app:compileCloneDebugAndroidTestJavaWithJavac \
               --no-daemon --max-workers=2 -Dkotlin.daemon.jvmargs="-Xmx3g" --stacktrace
           fi

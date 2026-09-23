@@ -20,9 +20,9 @@
 
 ## **1. 第一步：安装系统基础依赖**
 
-首先，我们需要更新包管理器并安装编译所需的关键基础软件：**Git**、**JDK 21**、**Node.js**、**npm** 和 **Python 3**。  
-```bash 
-# 更新软件包列表  
+首先，我们需要更新包管理器并安装编译所需的关键基础软件：**Git**、**JDK 21**、**Node.js**、**npm** 和 **Python 3**。
+```bash
+# 更新软件包列表
 sudo apt update
 
 # 安装必要的工具、JDK 21、Node.js、npm 和 Python 3
@@ -32,7 +32,7 @@ sudo apt install -y git wget unzip openjdk-21-jdk nodejs npm python3
 sudo npm install -g pnpm
 
 # 安装完成后，请验证 Java 版本是否正确
-java -version  
+java -version
 # 预期输出应包含 "OpenJDK Runtime Environment (build 21..." 或类似信息
 
 # 建议同时确认 Node.js、npm、pnpm 和 Python 3 可用
@@ -40,7 +40,7 @@ node -v
 npm -v
 pnpm -v
 python3 --version
-``` 
+```
 **注意：** 项目官方要求 **JDK 21**。为确保最大兼容性，强烈建议优先安装和使用 JDK 21。
 
 **补充说明：** 项目中的 `web-chat` 使用 React + Vite 构建；`tools/example_packages/sync_example_packages.py` 会预构建 `examples/` 下的脚本包并打包 `.toolpkg`。因此除了 Android 环境外，还需要准备好 Node.js、npm、pnpm 和 Python 3。如果后续执行前端构建时提示 Node.js 版本过低，请升级到较新的 Node.js LTS 版本后再继续。
@@ -49,28 +49,28 @@ python3 --version
 
 为了管理 SDK，我们将使用更轻量的 Android 命令行工具（Command Line Tools），而非庞大的 Android Studio。
 
-1. **创建 Android SDK 目录:**  
+1. **创建 Android SDK 目录:**
 ```bash
 mkdir -p ~/Android/cmdline-tools
 ```
-2. 下载命令行工具:  
-访问 Android Developers 官网，复制最新的 Linux 版本链接。  
-**警告：** 下方的链接仅为示例，请务必检查并替换为官方提供的最新链接！  
+2. 下载命令行工具:
+访问 Android Developers 官网，复制最新的 Linux 版本链接。
+**警告：** 下方的链接仅为示例，请务必检查并替换为官方提供的最新链接！
 ```bash
-# 示例链接，请务必检查并替换为最新版本  
+# 示例链接，请务必检查并替换为最新版本
 wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O ~/cmdline-tools.zip
 ```
 
-3. 解压并配置目录结构:  
-命令行工具要求其文件位于一个名为 latest 的子目录中，否则 sdkmanager 可能无法识别。  
+3. 解压并配置目录结构:
+命令行工具要求其文件位于一个名为 latest 的子目录中，否则 sdkmanager 可能无法识别。
 ```bash
-# 解压到目标目录  
+# 解压到目标目录
 unzip ~/cmdline-tools.zip -d ~/Android/cmdline-tools
 
-# 将解压后的 cmdline-tools 移动到 latest 子目录  
+# 将解压后的 cmdline-tools 移动到 latest 子目录
 mv ~/Android/cmdline-tools/cmdline-tools ~/Android/cmdline-tools/latest
 
-# 清理下载的压缩包  
+# 清理下载的压缩包
 rm ~/cmdline-tools.zip
 ```
 最终的工具路径应为 ~/Android/cmdline-tools/latest/bin。
@@ -79,26 +79,26 @@ rm ~/cmdline-tools.zip
 
 配置环境变量以便系统能找到 **Java** 和 **Android SDK** 的相关命令，如 java、git 和 sdkmanager。
 
-1. **编辑配置文件：**  
+1. **编辑配置文件：**
 ```bash
 nano ~/.bashrc
 ```
 
-2. **在文件末尾添加以下内容：**  
+2. **在文件末尾添加以下内容：**
 ```bash
-# =============== Java JDK 21 配置 ===============  
-export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64  
+# =============== Java JDK 21 配置 ===============
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 export PATH=$JAVA_HOME/bin:$PATH
 
-# =============== Android SDK 配置 ===============  
-export ANDROID_HOME=$HOME/Android  
-# 将 latest/bin 添加到 PATH  
-export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH  
-# 将 platform-tools (ADB/Fastboot) 添加到 PATH  
+# =============== Android SDK 配置 ===============
+export ANDROID_HOME=$HOME/Android
+# 将 latest/bin 添加到 PATH
+export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+# 将 platform-tools (ADB/Fastboot) 添加到 PATH
 export PATH=$ANDROID_HOME/platform-tools:$PATH
 ```
 
-3. **使配置生效:**  
+3. **使配置生效:**
 ```bash
 source ~/.bashrc
 ```
@@ -107,75 +107,75 @@ source ~/.bashrc
 
 使用刚才配置好的 sdkmanager 命令来安装项目所需的 SDK 平台、构建工具和特定版本的 NDK。
 
-1. 接受所有 SDK 许可 (关键步骤！):  
-此步骤是必须的，否则 Gradle 构建会因许可问题而失败。  
+1. 接受所有 SDK 许可 (关键步骤！):
+此步骤是必须的，否则 Gradle 构建会因许可问题而失败。
 ```bash
 yes | sdkmanager --licenses
 ```
 
-2. 安装平台工具、SDK 平台和构建工具:  
-Operit 项目依赖于 android-34 平台和 34.0.0 构建工具。  
+2. 安装平台工具、SDK 平台和构建工具:
+Operit 项目依赖于 android-34 平台和 34.0.0 构建工具。
 ```bash
 sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 ```
-3. 安装项目指定的 NDK 版本:  
-本项目要求使用 NDK 25.1.8937393。  
+3. 安装项目指定的 NDK 版本:
+本项目要求使用 NDK 25.1.8937393。
 ```bash
 sdkmanager "ndk;25.1.8937393"
 ```
 
 ## **附：性能优化 - 配置编译资源**
 
-对于配置较高的机器（如 16GB 内存或以上），可以通过调整 Gradle 配置来显著加快编译速度。  
-在项目根目录下的 **gradle.properties** 文件中，您可以调整以下参数：  
+对于配置较高的机器（如 16GB 内存或以上），可以通过调整 Gradle 配置来显著加快编译速度。
+在项目根目录下的 **gradle.properties** 文件中，您可以调整以下参数：
 
 ```properties
-# 设置 Gradle 使用的 JVM 最大内存，例如 8GB  
+# 设置 Gradle 使用的 JVM 最大内存，例如 8GB
 org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError
 
-# 开启并行编译  
+# 开启并行编译
 org.gradle.parallel=true
 
-# (可选) 设置并行编译的 worker 数量，通常建议设置为 CPU 核心数  
+# (可选) 设置并行编译的 worker 数量，通常建议设置为 CPU 核心数
 # org.gradle.workers.max=8
-``` 
+```
 
 ## **5. 第五步：克隆并编译项目**
 
 环境准备就绪，现在开始编译项目。
 
-1. 克隆项目仓库并进入目录:  
+1. 克隆项目仓库并进入目录:
 请根据需要选择以下两种克隆方式（项目包含 Git 子模块）：
 
-**推荐：先 Fork 后克隆你的仓库**  
-在 GitHub 打开上游仓库并点击 Fork： [AAswordman/Operit](https://github.com/AAswordman/Operit)  
+**推荐：先 Fork 后克隆你的仓库**
+在 GitHub 打开上游仓库并点击 Fork： [Davinci198/fix-operit](https://github.com/Davinci198/fix-operit)
 克隆你的 Fork，并只初始化公开构建依赖 `terminal`：
 ```bash
 git clone https://github.com/<你的 GitHub 用户名>/Operit.git
 cd Operit
 git submodule update --init --recursive terminal
-```  
-（可选）添加上游仓库以便同步更新：  
+```
+（可选）添加上游仓库以便同步更新：
 ```bash
-git remote add upstream https://github.com/AAswordman/Operit.git
-```  
+git remote add upstream https://github.com/Davinci198/fix-operit.git
+```
 
-**备选：不 Fork，直接克隆上游仓库（只读）**  
+**备选：不 Fork，直接克隆上游仓库（只读）**
 ```bash
-git clone https://github.com/AAswordman/Operit.git
+git clone https://github.com/Davinci198/fix-operit.git
 cd Operit
 git submodule update --init --recursive terminal
-```  
+```
 
 如果你已克隆但尚未初始化公开子模块，可在仓库目录中执行：
 ```bash
 git submodule update --init --recursive terminal
-```  
+```
 其中 DragonBonesCPP、`ufbx`、`Bullet3`、`Saba`、`ncnn`、`sherpa-ncnn`、WAMR、`llama.cpp`、QuickJS、MNN 和 MNN 使用的 KleidiAI 由 CMake 通过 `FetchContent` 获取。CMake 会先解析远端 ref 的 commit，再下载对应 GitHub archive，因此不会拉取完整 Git 历史；默认跟随各自上游主分支、固定提交或上游工程声明的 tag。如需覆盖某个 ref，可在 CMake 参数中设置 `OPERIT_DRAGONBONES_CPP_GIT_REF`、`OPERIT_UFBX_GIT_REF`、`OPERIT_BULLET3_GIT_REF`、`OPERIT_SABA_GIT_REF`、`OPERIT_NCNN_GIT_REF`、`OPERIT_SHERPA_NCNN_GIT_REF`、`OPERIT_WAMR_GIT_REF`、`OPERIT_LLAMA_CPP_GIT_REF`、`OPERIT_QUICKJS_GIT_REF`、`OPERIT_MNN_GIT_REF` 或 `OPERIT_KLEIDIAI_GIT_REF`。
 2. **下载并放置非模型依赖库 (关键步骤！):**
 `README.md` 中提到，项目依赖一些需要手动下载的库。请从 [这个 Google Drive 链接](https://drive.google.com/drive/folders/1g-Q_i7cf6Ua4KX9ZM6V282EEZvTVVfF7?usp=sharing) 下载非模型文件，并将它们解压或放置到项目根目录下对应的 `libs` 或有 `.keep` 文件的文件夹中。  **警告：** 如果跳过此步骤，编译将因缺少依赖而失败。当前需要下载并解压这三个压缩包：`subpack.zip`、`jniLibs.zip`、`libs.zip`。默认本地 STT 模型不再通过 `models.zip` 准备，Android 构建会按 `app/config/stt-model-assets.properties` 从固定 Hugging Face 来源自动获取并校验。
 ```bash
-./app/src/main/assets/subpack/.keep  
+./app/src/main/assets/subpack/.keep
 ./app/src/main/jniLibs/.keep
 ./app/libs
 ```
@@ -214,8 +214,8 @@ python3 ./tools/example_packages/sync_example_packages.py
 chmod +x ./gradlew
 ```
 
-9. 运行 assembleDebug 命令进行编译:  
-首次编译会下载大量依赖，请耐心等待。  
+9. 运行 assembleDebug 命令进行编译:
+首次编译会下载大量依赖，请耐心等待。
 ```bash
 ./gradlew assembleDebug
 ```
@@ -225,8 +225,8 @@ chmod +x ./gradlew
 ./gradlew assembleDebugClone
 ```
 
-10. 查找 APK 文件:  
-编译成功后，生成的 APK 文件位于项目目录下的以下路径：  
+10. 查找 APK 文件:
+编译成功后，生成的 APK 文件位于项目目录下的以下路径：
 app/build/outputs/apk/debug/app-debug.apk
 app/build/outputs/apk/clone/app-clone.apk
 

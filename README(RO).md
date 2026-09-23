@@ -3,20 +3,15 @@
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/github/last-commit/AAswordman/Operit" alt="Last Commit">
+  <img src="https://img.shields.io/github/last-commit/Davinci198/fix-operit" alt="Last Commit">
   <img src="https://img.shields.io/badge/Platform-Android_8.0%2B-brightgreen.svg" alt="Platform">
-  <a href="https://github.com/AAswordman/Operit/releases/latest"><img src="https://img.shields.io/github/v/release/AAswordman/Operit" alt="Latest Release"></a>
+  <a href="https://github.com/Davinci198/fix-operit/releases/latest"><img src="https://img.shields.io/github/v/release/Davinci198/fix-operit" alt="Latest Release"></a>
   <br>
-  <a href="https://github.com/AAswordman/Operit/stargazers"><img src="https://img.shields.io/github/stars/AAswordman/Operit" alt="GitHub Stars"></a>
-  <a href="https://aaswordman.github.io/OperitWeb"><img src="https://img.shields.io/badge/📖-User_Guide-blue.svg" alt="User Guide"></a>
-  <a href="https://www.patreon.com/c/aaswordsman"><img src="https://img.shields.io/badge/🌍-Patreon-f96854.svg" alt="Patreon"></a>
-  <a href="https://afdian.com/a/aaswordsman"><img src="https://img.shields.io/badge/💖-Support_Development-ff6b6b.svg" alt="Support Development"></a>
+  <a href="https://github.com/Davinci198/fix-operit/stargazers"><img src="https://img.shields.io/github/stars/Davinci198/fix-operit" alt="GitHub Stars"></a>
+  <a href="https://github.com/Davinci198/fix-operit"><img src="https://img.shields.io/badge/📖-User_Guide-blue.svg" alt="User Guide"></a>
   <a href="docs/doc-src/dev-core/CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions Welcome"></a>
   <br>
-  <a href="mailto:aaswordsman@foxmail.com"><img src="https://img.shields.io/badge/📧-Email-red.svg" alt="Email"></a>
-  <a href="https://qm.qq.com/q/Sa4fKEH7sO"><img src="https://img.shields.io/badge/💬-QQ_Group-blue.svg" alt="QQ Group"></a>
-  <a href="https://discord.gg/YnV9MWurRF"><img src="https://img.shields.io/badge/🎮-Discord-5865F2.svg" alt="Discord"></a>
-  <a href="https://github.com/AAswordman/Operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
+  <a href="https://github.com/Davinci198/fix-operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
 </div>
 
 <div align="center">
@@ -176,10 +171,10 @@ Un ecosistem MCP bogat
 | Element | Descriere |
 |-----|------|
 | 📋 **Cerințe de sistem** | Android 8.0+ (API 26+), recomandat 6GB+ RAM, 5GB+ spațiu liber |
-| 📥 **Descărcare și instalare** | Descarcă cel mai nou APK din [pagina de Release](https://github.com/AAswordman/Operit/releases) |
+| 📥 **Descărcare și instalare** | Descarcă cel mai nou APK din [pagina de Release](https://github.com/Davinci198/fix-operit/releases) |
 | 📖 **Ghid de utilizare** | [Site-ul oficial](https://operit.app) conține tutoriale detaliate și exemple |
 
-> **Avertisment de securitate:** Pentru siguranța datelor tale, descarcă aplicația exclusiv din [pagina de Release](https://github.com/AAswordman/Operit/releases) oficială sau de pe [site-ul oficial](https://operit.app). Pachetele de instalare descărcate din surse necunoscute pot fi modificate malițios, ducând la scurgeri de date private sau supravegherea dispozitivului.
+> **Avertisment de securitate:** Pentru siguranța datelor tale, descarcă aplicația exclusiv din [pagina de Release](https://github.com/Davinci198/fix-operit/releases) oficială sau de pe [site-ul oficial](https://operit.app). Pachetele de instalare descărcate din surse necunoscute pot fi modificate malițios, ducând la scurgeri de date private sau supravegherea dispozitivului.
 
 **Pași de instalare:** descarcă APK-ul → instalează și pornește → configurează după ghid → începe să-l folosești ✨
 
@@ -433,7 +428,7 @@ Un ecosistem MCP bogat
 </tr>
 </table>
 
-> 📝 **Jurnal complet de modificări**: vizitează [pagina de Releases](https://github.com/AAswordman/Operit/releases) pentru detalii despre fiecare versiune
+> 📝 **Jurnal complet de modificări**: vizitează [pagina de Releases](https://github.com/Davinci198/fix-operit/releases) pentru detalii despre fiecare versiune
 
 ---
 
@@ -444,22 +439,19 @@ Bine ai venit în ecosistemul open source Operit! Așteptăm contribuții de toa
 **Informații pentru dezvoltatori:**
 - 📚 [Ghid de co-creare open source](docs/doc-src/dev-core/CONTRIBUTING.md) | [Ghid de dezvoltare a scripturilor](docs/SCRIPT_DEV_GUIDE.md)
 - 📦 Construirea proiectului necesită descărcarea arhivelor cu dependențe non-model de pe [Google Drive](https://drive.google.com/drive/folders/1g-Q_i7cf6Ua4KX9ZM6V282EEZvTVVfF7?usp=sharing) (`subpack.zip`, `jniLibs.zip`, `libs.zip`); modelul local implicit STT este obținut și validat automat în faza de build Android, conform `app/config/stt-model-assets.properties`
-- 💬 Alătură-te discuțiilor din comunitate: [Grup QQ](https://qm.qq.com/q/Sa4fKEH7sO) | [Discord](https://discord.gg/YnV9MWurRF)
 
 ### 💖 Contribuitori
 
 Mulțumim tuturor celor care au contribuit la Operit AI!
 
-<a href="https://github.com/AAswordman/Operit/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=AAswordman/Operit" />
+<a href="https://github.com/Davinci198/fix-operit/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Davinci198/fix-operit" />
 </a>
 
 ## 💖 Susținerea dezvoltării
 
 Dacă Operit AI îți este de folos, poți susține voluntar dezvoltarea continuă a proiectului și cheltuielile de bază:
 
-- Pentru suport internațional poți folosi [Patreon](https://www.patreon.com/c/aaswordsman)
-- Pentru suport din China poți folosi [爱发电](https://afdian.com/a/aaswordsman)
 
 - Sponsorizarea este complet voluntară și nu este legată de nicio funcție, cotă, actualizare, suport sau alt beneficiu
 - Chiar dacă nu sponsorizezi, utilizarea normală, primirea actualizărilor și accesul la codul open source nu sunt afectate
@@ -480,7 +472,7 @@ Pe scurt, asta înseamnă:
 
 ## 📝 Raportarea problemelor
 
-Ai întâmpinat o problemă sau ai sugestii? Deschide un [Issue](https://github.com/AAswordman/Operit/issues)!
+Ai întâmpinat o problemă sau ai sugestii? Deschide un [Issue](https://github.com/Davinci198/fix-operit/issues)!
 
 **Ghid pentru raportare:**
 - 📝 Descrie clar problema/sugestia, cu pași de reproducere
@@ -494,11 +486,11 @@ Ai întâmpinat o problemă sau ai sugestii? Deschide un [Issue](https://github.
   <p><b>🚀 Ajută-ne să-l facem cunoscut mai multor oameni — Operit AI 🚀</b></p>
   ## Star History
 
-<a href="https://www.star-history.com/?repos=AAswordman%2FOperit&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=Davinci198%2Ffix-operit&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=AAswordman/Operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=AAswordman/Operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=AAswordman/Operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
  </picture>
 </a>
   <br>

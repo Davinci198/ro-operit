@@ -92,7 +92,7 @@ async function highLevelToolCall(toolType, toolName, params) {
   }
 }
 
-const CDN_BASE = 'https://cdn.jsdelivr.net/gh/AAswordman/Operit@main';
+const CDN_BASE = 'https://cdn.jsdelivr.net/gh/Davinci198/fix-operit@main';
 const TYPE_FILES = [
   'android.d.ts',
   'chat.d.ts',

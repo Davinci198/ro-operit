@@ -1,6 +1,6 @@
 ---
-fork: https://github.com/AAswordman/Operit.git
-issue: https://github.com/AAswordman/Operit/issues/853
+fork: https://github.com/Davinci198/fix-operit.git
+issue: https://github.com/Davinci198/fix-operit/issues/853
 ---
 
 # 长会话加载审计

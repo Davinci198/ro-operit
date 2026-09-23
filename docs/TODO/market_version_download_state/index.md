@@ -1,5 +1,5 @@
 ---
-Fork: https://github.com/AAswordman/Operit.git
+Fork: https://github.com/Davinci198/fix-operit.git
 ---
 
 # 市场版本范围下载状态

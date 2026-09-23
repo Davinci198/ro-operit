@@ -87,7 +87,7 @@ Operit-follow-up/
 
 ### [`terminal`](terminal/)
 
-这是 [OperitTerminalCore](https://github.com/AAswordman/OperitTerminalCore) Git 子模块，对应 Gradle 中的 `:terminal` 
+这是 [OperitTerminalCore](https://github.com/Davinci198/OperitTerminalCore) Git 子模块，对应 Gradle 中的 `:terminal`
 
 ### [`tools`](tools/)
 
