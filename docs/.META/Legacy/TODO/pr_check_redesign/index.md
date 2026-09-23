@@ -25,7 +25,7 @@ status: completed
 ## 作用域
 
 - `.github/workflows/pr-check.yml`
-- `.github/workflows/android-build.yml`
+- `.github/workflows/release-clone.yml`
 - `gradle/wrapper/gradle-wrapper.properties`
 - `ci/script/` 与 `ci/test/`
 - `examples/toolpkg_wasm_demo/package-lock.json`
