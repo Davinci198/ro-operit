@@ -29,7 +29,6 @@ env:
   NODE_VERSION: '22'
   ANDROID_NDK_VERSION: '27.0.12077973'
   ANDROID_CMAKE_VERSION: '3.22.1'
-  _JAVA_OPTIONS: "-Xmx4g"
 
 jobs:
   build:
@@ -139,8 +138,20 @@ jobs:
         run: |
           case "${{ github.event_name }}" in push) TASK=":app:assembleCloneDebug" ;; workflow_dispatch) TASK="${{ inputs.gradle_task }}" ;; *) TASK=":app:assembleCloneDebug" ;; esac
           chmod +x ./gradlew
-          ./gradlew $TASK --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx4g -Xms2g" | tee gradle.log
-          grep "BUILD SUCCESSFUL" gradle.log
+          # Un singur worker si heap-uri explicite: compilarea nativa a MNN/llvm atinge limita de memorie
+          # a runnerului (~16GB, cgroup) cu doua instanțe clang in paralel, iar procesul java e omorat
+          # brusc, fara nicio linie de eroare in log. Valorile de mai jos sunt cele care reusesc in
+          # release-clone.yml pe acelasi cod.
+          ./gradlew $TASK --no-daemon --max-workers=1 \
+            -Dorg.gradle.jvmargs="-Xmx8g -Xms2g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC" \
+            -Dkotlin.daemon.jvmargs="-Xmx6g -Xms1g -XX:MaxMetaspaceSize=768m" 2>&1 | tee gradle.log
+          GRADLE_STATUS=${PIPESTATUS[0]}
+          if (( GRADLE_STATUS != 0 )) || ! grep -qi "BUILD SUCCESSFUL" gradle.log; then
+            echo "::error::Gradle exited with $GRADLE_STATUS without reporting BUILD SUCCESSFUL"
+            tail -200 gradle.log
+            exit 1
+          fi
+          find app/build/outputs -name '*.apk' -type f -exec ls -lh {} +
 
       - name: Upload APK Clone
         if: success()
@@ -150,3 +161,15 @@ jobs:
           path: app/build/outputs/apk/**/*.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload log on fail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-log-${{ github.run_number }}
+          path: |
+            gradle.log
+            app/build/outputs/logs/*
+            llm/mnn/.cxx/**/CMakeFiles/CMakeOutput.log
+          if-no-files-found: warn
+          retention-days: 7
