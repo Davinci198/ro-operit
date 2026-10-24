@@ -127,6 +127,7 @@ class CandidateContractTest(unittest.TestCase):
             head_sha = git(repository, "rev-parse", "HEAD")
 
             git(repository, "switch", "main")
+            event_base_sha = git(repository, "rev-parse", "HEAD")
             docs = repository / "docs/upstream.md"
             docs.parent.mkdir()
             docs.write_text("upstream\n", encoding="utf-8")
@@ -141,6 +142,7 @@ class CandidateContractTest(unittest.TestCase):
             try:
                 os.chdir(repository)
                 context = candidate_context(candidate_sha, base_sha, head_sha)
+                stale_event_context = candidate_context(candidate_sha, event_base_sha, head_sha)
                 paths = changed_paths(context.base_sha, context.candidate_sha)
                 with self.assertRaisesRegex(ValueError, "first parent"):
                     candidate_context(candidate_sha, head_sha, head_sha)
@@ -150,6 +152,7 @@ class CandidateContractTest(unittest.TestCase):
                 os.chdir(previous_directory)
 
             self.assertEqual(paths, ["app/src/main/res/values-ro/strings.xml"])
+            self.assertEqual(stale_event_context.base_sha, base_sha)
 
     def test_non_merge_candidate_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
