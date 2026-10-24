@@ -135,6 +135,9 @@ jobs:
           echo "CXX cache cleaned"
 
       - name: Build CLONE APK
+        env:
+          # Gradle workers do not limit the CMake/Ninja jobs spawned by externalNativeBuild.
+          CMAKE_BUILD_PARALLEL_LEVEL: '1'
         run: |
           case "${{ github.event_name }}" in push) TASK=":app:assembleCloneDebug" ;; workflow_dispatch) TASK="${{ inputs.gradle_task }}" ;; *) TASK=":app:assembleCloneDebug" ;; esac
           chmod +x ./gradlew
@@ -148,12 +151,19 @@ jobs:
             echo "org.gradle.jvmargs=-Xmx8g -Xms2g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -Dfile.encoding=UTF-8"
             echo "org.gradle.workers.max=1"
             echo "org.gradle.parallel=false"
+            echo "org.gradle.configureondemand=false"
+            echo "org.gradle.caching=false"
             echo "kotlin.daemon.jvmargs=-Xmx6g -Xms1g -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8"
           } >> gradle.properties
-          ./gradlew $TASK --no-daemon --max-workers=1 2>&1 | tee gradle.log
-          GRADLE_STATUS=${PIPESTATUS[0]}
-          if (( GRADLE_STATUS != 0 )) || ! grep -qi "BUILD SUCCESSFUL" gradle.log; then
-            echo "::error::Gradle exited with $GRADLE_STATUS without reporting BUILD SUCCESSFUL"
+          # Capture both pipeline statuses even if the runner's shell enables pipefail later.
+          set +e
+          ./gradlew "$TASK" --no-daemon --max-workers=1 2>&1 | tee gradle.log
+          PIPE_STATUSES=("${PIPESTATUS[@]}")
+          set -e
+          GRADLE_STATUS=${PIPE_STATUSES[0]}
+          TEE_STATUS=${PIPE_STATUSES[1]}
+          if (( GRADLE_STATUS != 0 || TEE_STATUS != 0 )) || ! grep -qi "BUILD SUCCESSFUL" gradle.log; then
+            echo "::error::Gradle pipeline exited with gradle=$GRADLE_STATUS tee=$TEE_STATUS without reporting BUILD SUCCESSFUL"
             tail -200 gradle.log
             exit 1
           fi
