@@ -186,19 +186,35 @@ def resolve_commit(value: str) -> str:
     return str(run_git("rev-parse", f"{value}^{{commit}}")).strip()
 
 
+def is_ancestor(ancestor: str, descendant: str) -> bool:
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
 def candidate_context(candidate: str, expected_base: str, expected_head: str) -> CandidateContext:
     candidate_sha = resolve_commit(candidate)
-    base_sha = resolve_commit(expected_base)
+    expected_base_sha = resolve_commit(expected_base)
     head_sha = resolve_commit(expected_head)
     parent_line = str(run_git("rev-list", "--parents", "-n", "1", candidate_sha)).split()
     parents = parent_line[1:]
 
     if len(parents) != 2:
         raise ValueError(f"candidate {candidate_sha} must have exactly two parents, found {len(parents)}")
-    if parents[0] != base_sha:
-        raise ValueError(f"candidate first parent is {parents[0]}, expected base {base_sha}")
     if parents[1] != head_sha:
         raise ValueError(f"candidate second parent is {parents[1]}, expected head {head_sha}")
+    # GitHub can build the merge ref from a newer base than the PR event payload.
+    # Accept that only when the event base is an ancestor, never after a history rewrite.
+    base_sha = parents[0]
+    if base_sha != expected_base_sha and not is_ancestor(expected_base_sha, base_sha):
+        raise ValueError(
+            f"candidate first parent is {base_sha}, expected base {expected_base_sha} "
+            "or a descendant"
+        )
 
     return CandidateContext(base_sha=base_sha, head_sha=head_sha, candidate_sha=candidate_sha)
 
