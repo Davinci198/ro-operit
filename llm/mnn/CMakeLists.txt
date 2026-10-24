@@ -9,7 +9,9 @@ operit_prepare_git_source(
     OPERIT_MNN_BINARY_DIR
     mnn
     "https://github.com/alibaba/MNN.git"
-    "master"
+    # Pin the revision used by the last successful optimized APK build.
+    # Current master leaves AttentionBufExecution::kFdChunk undefined at link time.
+    "bef71b9756a2c77549eddbe33eb97290e3b16602"
 )
 
 operit_prepare_git_source(
