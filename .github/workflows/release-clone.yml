@@ -319,16 +319,58 @@ jobs:
           echo "APK_PATH=$APK" >> "$GITHUB_ENV"
           ls -lh "$APK"
 
+      # Release notes come from the commits that actually shipped, computed at
+      # release time. They used to be hardcoded in the release step below, so
+      # every release advertised an older build's changes. The previous release
+      # tag is read from the API so this keeps working on the shallow
+      # (fetch-depth: 1) checkout.
+      - name: Build release notes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.version_tag }}
+          VERSION_NAME: ${{ inputs.version_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          PREVIOUS_TAG="$(
+            gh api "repos/$REPO/releases?per_page=100" \
+              --jq "[.[] | select(.tag_name != \"$TAG\")][0].tag_name"
+          )"
+          # No earlier release: nothing to diff against, so ask for the notes
+          # without a previous tag instead of passing an empty one (which the
+          # API rejects).
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            echo "Previous release: $PREVIOUS_TAG"
+            PREVIOUS_ARG=(-f previous_tag_name="$PREVIOUS_TAG")
+          else
+            echo "No previous release found; generating notes without a baseline"
+            PREVIOUS_ARG=()
+          fi
+          gh api -X POST "repos/$REPO/releases/generate-notes" \
+            -f tag_name="$TAG" \
+            -f target_commitish="${{ github.sha }}" \
+            "${PREVIOUS_ARG[@]}" \
+            --jq '.body' > release-notes-generated.md
+          {
+            echo "## RO-Operit $VERSION_NAME (clone, signed)"
+            echo
+            cat release-notes-generated.md
+            echo
+            echo "---"
+            echo
+            echo "- Version code: ${{ inputs.version_code }}"
+            echo "- Build: #${{ github.run_number }}"
+            echo "- Commit: \`${{ github.sha }}\`"
+          } > release-notes.md
+          cat release-notes.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.version_tag }}
           name: RO-Operit ${{ inputs.version_name }} (clone, signed)
-          body: |
-            ## RO-Operit ${{ inputs.version_name }} (clone)
-            - Fix: qwen3_tts_demo removed (MNN_BUILD_DEMO=OFF), ro duplicate keys fix #26, OOM fix GC overhead #27
-            - Build: #${{ github.run_number }}
-            - Commit: ${{ github.sha }}
+          body_path: release-notes.md
           draft: false
           prerelease: ${{ inputs.prerelease }}
           files: |
