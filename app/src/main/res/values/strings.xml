@@ -8103,4 +8103,18 @@
     <string name="ext_http_example_message_async">你好</string>
     <string name="ext_http_example_message_broadcast">你好</string>
 
+    <!-- 模型健康扫描 / Model health scan -->
+    <string name="models_scan_test_all">测试</string>
+    <string name="models_scan_running">正在测试模型…</string>
+    <string name="models_scan_summary">已测试 %1$d / %2$d · 平均 %3$s</string>
+    <string name="models_scan_filter_all">全部</string>
+    <string name="models_scan_filter_working">正常</string>
+    <string name="models_scan_filter_broken">故障</string>
+    <string name="models_scan_probe_hint">已发现 %1$d 个模型。测试会发送一个很短的请求并测量真实延迟。</string>
+    <string name="models_scan_status_ok">正常</string>
+    <string name="models_scan_status_fail">故障</string>
+    <string name="models_scan_status_timeout">超时</string>
+    <string name="models_scan_clear">清除测试结果</string>
+    <string name="models_scan_no_match">没有符合过滤器或搜索条件的模型</string>
+
 </resources>

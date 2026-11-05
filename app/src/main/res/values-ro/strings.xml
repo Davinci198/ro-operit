@@ -8110,4 +8110,18 @@ Vă rugăm să sprijiniți autorul original și să fiți atenți la revânzare.
     <string name="ext_http_example_message_async">Bună</string>
     <string name="ext_http_example_message_broadcast">Bună</string>
 
+    <!-- Model health scan -->
+    <string name="models_scan_test_all">Testează</string>
+    <string name="models_scan_running">Se testează modelele…</string>
+    <string name="models_scan_summary">%1$d din %2$d verificate · %3$s medie</string>
+    <string name="models_scan_filter_all">Toate</string>
+    <string name="models_scan_filter_working">Funcționale</string>
+    <string name="models_scan_filter_broken">Defecte</string>
+    <string name="models_scan_probe_hint">Au fost descoperite %1$d modele. Testarea trimite o cerere scurtă și măsoară latența reală.</string>
+    <string name="models_scan_status_ok">Funcțional</string>
+    <string name="models_scan_status_fail">Defect</string>
+    <string name="models_scan_status_timeout">Timeout</string>
+    <string name="models_scan_clear">Șterge rezultatele testării</string>
+    <string name="models_scan_no_match">Niciun model nu corespunde filtrului sau căutării</string>
+
 </resources>

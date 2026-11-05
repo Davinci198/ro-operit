@@ -8130,4 +8130,18 @@
     <string name="ext_http_example_message_async">Hello</string>
     <string name="ext_http_example_message_broadcast">Hello</string>
 
+    <!-- Model health scan -->
+    <string name="models_scan_test_all">Test</string>
+    <string name="models_scan_running">Testing models…</string>
+    <string name="models_scan_summary">%1$d of %2$d verified · %3$s average</string>
+    <string name="models_scan_filter_all">All</string>
+    <string name="models_scan_filter_working">Working</string>
+    <string name="models_scan_filter_broken">Broken</string>
+    <string name="models_scan_probe_hint">%1$d models were discovered. Testing sends one short request and measures the real latency.</string>
+    <string name="models_scan_status_ok">Working</string>
+    <string name="models_scan_status_fail">Broken</string>
+    <string name="models_scan_status_timeout">Timed out</string>
+    <string name="models_scan_clear">Clear test results</string>
+    <string name="models_scan_no_match">No model matches the filter or search</string>
+
 </resources>

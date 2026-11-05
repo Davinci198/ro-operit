@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Api
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Refresh
@@ -47,12 +48,17 @@ import com.ai.assistance.operit.api.chat.llmprovider.EndpointCompleter
 import com.ai.assistance.operit.api.chat.EnhancedAIService
 import com.ai.assistance.operit.api.chat.llmprovider.AIServiceFactory
 import com.ai.assistance.operit.api.chat.llmprovider.LlamaProvider
+import com.ai.assistance.operit.api.chat.llmprovider.ModelHealth
+import com.ai.assistance.operit.api.chat.llmprovider.ModelHealthScanner
+import com.ai.assistance.operit.api.chat.llmprovider.ModelHealthStatus
 import com.ai.assistance.operit.api.chat.llmprovider.ModelListFetcher
+import com.ai.assistance.operit.api.chat.llmprovider.ModelScanSummary
 import com.ai.assistance.operit.data.collects.ApiProviderConfigs
 import com.ai.assistance.operit.data.model.ApiProviderType
 import com.ai.assistance.operit.data.model.ModelConfigData
 import com.ai.assistance.operit.data.model.ModelOption
 import com.ai.assistance.operit.data.preferences.ModelConfigManager
+import com.ai.assistance.operit.data.preferences.ModelScanPreferences
 import com.ai.assistance.operit.plugins.toolpkg.ToolPkgAiProviderRegistry
 import com.ai.assistance.operit.ui.common.input.bringIntoViewOnImeFocus
 import com.ai.assistance.operit.ui.features.settings.DebouncedModelConfigAutoSaveEffect
@@ -791,6 +797,43 @@ fun ModelApiSettingsSection(
                     else modelsList.filter { it.id.contains(searchQuery, ignoreCase = true) }
                 }
 
+        // 模型健康扫描状态 / Model-health scan state
+        val scanPreferences = remember { ModelScanPreferences.getInstance(context) }
+        var scanResults by remember { mutableStateOf<Map<String, ModelHealth>>(emptyMap()) }
+        var isScanning by remember { mutableStateOf(false) }
+        // Toate / 正常 / 故障 —— 与搜索词叠加生效
+        // All / working / broken — applied together with the search query.
+        var healthFilter by remember { mutableStateOf(HealthFilter.ALL) }
+
+        // 打开对话框时载入上次结果，避免重复扫描
+        // Load the previous results when the dialog opens, to avoid a needless rescan.
+        LaunchedEffect(showModelsDialog, config.id) {
+            if (showModelsDialog) {
+                scanResults = scanPreferences.loadResults(config.id).associateBy { it.modelId }
+            }
+        }
+
+        // 探测器无状态，可以安全复用 / The scanner is stateless, so reusing it is safe
+        val scanner = remember { ModelHealthScanner(context, configManager) }
+
+        val visibleModels =
+                remember(filteredModelsList, scanResults, healthFilter) {
+                    when (healthFilter) {
+                        HealthFilter.ALL -> filteredModelsList
+                        HealthFilter.WORKING ->
+                                filteredModelsList.filter {
+                                    scanResults[it.id]?.status == ModelHealthStatus.OK
+                                }
+                        HealthFilter.BROKEN ->
+                                filteredModelsList.filter {
+                                    val health = scanResults[it.id]
+                                    health != null && health.status != ModelHealthStatus.OK
+                                }
+                    }
+                }
+
+        val scanSummary = remember(scanResults, modelsList) { ModelScanSummary.of(scanResults.values.toList()) }
+
         Dialog(onDismissRequest = { showModelsDialog = false }) {
             Surface(
                     modifier = Modifier.fillMaxWidth().heightIn(max = 520.dp),
@@ -860,47 +903,209 @@ fun ModelApiSettingsSection(
                         }
                     }
 
-                    // 搜索框 - 用普通的OutlinedTextField替代实验性的SearchBar
-                    OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            placeholder = { Text(stringResource(R.string.search_models), fontSize = 14.sp) },
-                            leadingIcon = {
-                                Icon(
-                                        Icons.Default.Search,
-                                        contentDescription = stringResource(R.string.search),
-                                        modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            trailingIcon = {
-                                if (searchQuery.isNotEmpty()) {
-                                    IconButton(
-                                            onClick = { searchQuery = "" },
-                                            modifier = Modifier.size(36.dp)
-                                    ) {
-                                        Icon(
-                                                Icons.Default.Clear,
-                                                contentDescription = stringResource(R.string.clear),
-                                                modifier = Modifier.size(18.dp)
-                                        )
+                    // 测试全部按钮 + 搜索框 / "Test all" button + search field
+                    Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                placeholder = { Text(stringResource(R.string.search_models), fontSize = 14.sp) },
+                                leadingIcon = {
+                                    Icon(
+                                            Icons.Default.Search,
+                                            contentDescription = stringResource(R.string.search),
+                                            modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                trailingIcon = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        IconButton(
+                                                onClick = { searchQuery = "" },
+                                                modifier = Modifier.size(36.dp)
+                                        ) {
+                                            Icon(
+                                                    Icons.Default.Clear,
+                                                    contentDescription = stringResource(R.string.clear),
+                                                    modifier = Modifier.size(18.dp)
+                                            )
+                                        }
                                     }
+                                },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f).height(48.dp),
+                                colors =
+                                        OutlinedTextFieldDefaults.colors(
+                                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                                unfocusedBorderColor =
+                                                        MaterialTheme.colorScheme.outline,
+                                                focusedLeadingIconColor =
+                                                        MaterialTheme.colorScheme.primary,
+                                                unfocusedLeadingIconColor =
+                                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                        ),
+                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp)
+                        )
+
+                        // 只测试当前列表里的模型。没有任何模型可测时不显示该按钮 ——
+                        // 宁可不给按钮，也不放一个点了没反应的按钮。
+                        // Tests only the models currently listed. Hidden when there is
+                        // nothing to test: better no button than one that does nothing.
+                        if (modelsList.isNotEmpty()) {
+                            FilledIconButton(
+                                    onClick = {
+                                        if (!isScanning && canRequestModelList) {
+                                            scope.launch {
+                                                isScanning = true
+                                                healthFilter = HealthFilter.ALL
+                                                try {
+                                                    val results =
+                                                            scanner.scan(
+                                                                    config =
+                                                                            config.copy(
+                                                                                    apiKey = apiKeyInput,
+                                                                                    apiEndpoint = apiEndpointInput,
+                                                                                    apiProviderType =
+                                                                                            selectedApiProvider
+                                                                                                    ?: ApiProviderType.OPENAI_GENERIC,
+                                                                                    apiProviderTypeId =
+                                                                                            selectedProviderTypeId
+                                                                            ),
+                                                                    models = modelsList,
+                                                                    onProgress = { _ -> }
+                                                            )
+                                                    scanResults = results.associateBy { it.modelId }
+                                                    scanPreferences.saveResults(config.id, results)
+                                                } catch (e: Exception) {
+                                                    AppLogger.w(TAG, "Model scan failed", e)
+                                                    showNotification(
+                                                            e.message
+                                                                    ?: context.getString(
+                                                                            R.string.unknown_error
+                                                                    )
+                                                    )
+                                                } finally {
+                                                    isScanning = false
+                                                }
+                                            }
+                                        }
+                                    },
+                                    enabled = canRequestModelList && !isScanning,
+                                    colors =
+                                            IconButtonDefaults.filledIconButtonColors(
+                                                    containerColor =
+                                                            MaterialTheme.colorScheme.primaryContainer,
+                                                    contentColor =
+                                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                            ),
+                                    modifier = Modifier.size(48.dp)
+                            ) {
+                                if (isScanning) {
+                                    CircularProgressIndicator(
+                                            modifier = Modifier.size(18.dp),
+                                            strokeWidth = 2.dp,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                } else {
+                                    Icon(
+                                            Icons.Default.NetworkCheck,
+                                            contentDescription =
+                                                    stringResource(R.string.models_scan_test_all),
+                                            modifier = Modifier.size(18.dp)
+                                    )
                                 }
-                            },
-                            singleLine = true,
-                            modifier =
-                                    Modifier.fillMaxWidth().padding(bottom = 12.dp).height(48.dp),
-                            colors =
-                                    OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                            unfocusedBorderColor =
-                                                    MaterialTheme.colorScheme.outline,
-                                            focusedLeadingIconColor =
-                                                    MaterialTheme.colorScheme.primary,
-                                            unfocusedLeadingIconColor =
-                                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                    ),
-                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp)
-                    )
+                            }
+                        }
+                    }
+
+                    // 汇总条 / Summary bar
+                    if (isScanning) {
+                        Text(
+                                text = stringResource(R.string.models_scan_running),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                    } else if (scanResults.isNotEmpty()) {
+                        Text(
+                                text =
+                                        scanSummary.summaryLine(
+                                                context.getString(R.string.models_scan_summary)
+                                        ),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                    }
+
+                    // 过滤器 / Filters
+                    Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        FilterChip(
+                                selected = healthFilter == HealthFilter.ALL,
+                                onClick = { healthFilter = HealthFilter.ALL },
+                                label = { Text(stringResource(R.string.models_scan_filter_all)) }
+                        )
+                        FilterChip(
+                                selected = healthFilter == HealthFilter.BROKEN,
+                                onClick = { healthFilter = HealthFilter.BROKEN },
+                                label = { Text(stringResource(R.string.models_scan_filter_broken)) }
+                        )
+                        FilterChip(
+                                selected = healthFilter == HealthFilter.WORKING,
+                                onClick = { healthFilter = HealthFilter.WORKING },
+                                label = { Text(stringResource(R.string.models_scan_filter_working)) }
+                        )
+
+                        // 清除已有结果。只在确实有结果可清时出现 ——
+                        // 没有结果时不给这个按钮，和上面「测试」按钮同理。
+                        // Clears stored results. Shown only when there is something
+                        // to clear, for the same reason as the test button above.
+                        if (scanResults.isNotEmpty()) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            IconButton(
+                                    onClick = {
+                                        scope.launch {
+                                            scanPreferences.clearResults(config.id)
+                                            scanResults = emptyMap()
+                                            healthFilter = HealthFilter.ALL
+                                        }
+                                    },
+                                    modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                        Icons.Default.Clear,
+                                        contentDescription =
+                                                stringResource(R.string.models_scan_clear),
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // 列表非空但尚未测试时，给出提示而不是空白 / Hint while listed-but-untested
+                    if (modelsList.isNotEmpty() && scanResults.isEmpty() && !isScanning) {
+                        Text(
+                                text =
+                                        stringResource(
+                                                R.string.models_scan_probe_hint,
+                                                modelsList.size
+                                        ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                    }
 
                     // 模型列表
                     if (modelsList.isEmpty()) {
@@ -929,13 +1134,29 @@ fun ModelApiSettingsSection(
                                 )
                             }
                         }
+                    } else if (visibleModels.isEmpty()) {
+                        // 列表非空，但当前过滤器/搜索词筛掉了全部。
+                        // 明确说出来，而不是显示一块空白。
+                        // The list is non-empty but the filter/search removed
+                        // everything. Say so instead of rendering a blank area.
+                        Box(
+                                modifier = Modifier.fillMaxWidth().height(120.dp),
+                                contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                    text = stringResource(R.string.models_scan_no_match),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     } else {
                         androidx.compose.foundation.lazy.LazyColumn(
                                 modifier = Modifier.fillMaxWidth().weight(1f)
                         ) {
-                            items(filteredModelsList.size) { index ->
-                                val model = filteredModelsList[index]
+                            items(visibleModels.size) { index ->
+                                val model = visibleModels[index]
                                 val isSelected = selectedModels.value.contains(model.id)
+                                val health = scanResults[model.id]
                                 
                                 // 使用带Checkbox的Row实现多选
                                 Row(
@@ -983,9 +1204,18 @@ fun ModelApiSettingsSection(
                                                 else 
                                                     MaterialTheme.colorScheme.onSurface
                                     )
+
+                                    // 延迟 / 状态。未扫描时什么都不显示，
+                                    // 不用占位符假装已经有结果。
+                                    // Latency / status. Nothing is shown for an
+                                    // unscanned model — no placeholder pretending
+                                    // a result already exists.
+                                    if (health != null) {
+                                        ModelHealthBadge(health)
+                                    }
                                 }
 
-                                if (index < filteredModelsList.size - 1) {
+                                if (index < visibleModels.size - 1) {
                                     HorizontalDivider(
                                             thickness = 0.5.dp,
                                             color =
@@ -1000,11 +1230,11 @@ fun ModelApiSettingsSection(
                     }
 
                     // 底部信息
-                    if (filteredModelsList.isNotEmpty()) {
+                    if (visibleModels.isNotEmpty()) {
                         Text(
                                 text =
-                                        stringResource(R.string.models_displayed, filteredModelsList.size) +
-                                                (if (searchQuery.isNotEmpty()) stringResource(R.string.models_displayed_filtered) else "") +
+                                        stringResource(R.string.models_displayed, visibleModels.size) +
+                                                (if (searchQuery.isNotEmpty() || healthFilter != HealthFilter.ALL) stringResource(R.string.models_displayed_filtered) else "") +
                                                 (if (selectedModels.value.isNotEmpty()) " • ${selectedModels.value.size}" + stringResource(R.string.models_selected_suffix) else ""),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1046,6 +1276,57 @@ fun ModelApiSettingsSection(
                     }
                 }
             }
+        }
+    }
+}
+
+/** 模型列表的健康过滤器 / Health filter for the model list. */
+private enum class HealthFilter {
+    ALL,
+    WORKING,
+    BROKEN
+}
+
+/**
+ * 单个模型的健康标记 / Per-model health badge.
+ *
+ * 正常时显示实测延迟 + 状态；故障/超时没有延迟可言，只显示状态本身。
+ * Shows the measured latency plus status when the model works; a failure or a
+ * timeout has no latency to report, so only the status is shown.
+ */
+@Composable
+private fun ModelHealthBadge(health: ModelHealth) {
+    val statusText: String
+    val statusColor: androidx.compose.ui.graphics.Color
+    when (health.status) {
+        ModelHealthStatus.OK -> {
+            statusText = stringResource(R.string.models_scan_status_ok)
+            statusColor = MaterialTheme.colorScheme.primary
+        }
+        ModelHealthStatus.FAIL -> {
+            statusText = stringResource(R.string.models_scan_status_fail)
+            statusColor = MaterialTheme.colorScheme.error
+        }
+        ModelHealthStatus.TIMEOUT -> {
+            statusText = stringResource(R.string.models_scan_status_timeout)
+            statusColor = MaterialTheme.colorScheme.tertiary
+        }
+    }
+
+    Column(horizontalAlignment = Alignment.End) {
+        Text(
+                text = if (health.status == ModelHealthStatus.OK) health.latencyLabel else statusText,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+                color = statusColor
+        )
+        if (health.status == ModelHealthStatus.OK) {
+            Text(
+                    text = statusText,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 10.sp,
+                    color = statusColor.copy(alpha = 0.8f)
+            )
         }
     }
 }
