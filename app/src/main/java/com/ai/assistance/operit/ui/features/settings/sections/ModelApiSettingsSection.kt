@@ -960,6 +960,12 @@ fun ModelApiSettingsSection(
                                             scope.launch {
                                                 isScanning = true
                                                 healthFilter = HealthFilter.ALL
+                                                // 每次探测完成就发布到列表，而不是等全部结束 ——
+                                                // 慢模型不再拖住其他结果。
+                                                // Publish each finished probe to the list
+                                                // instead of waiting for all of them: a slow
+                                                // model no longer holds back the other results.
+                                                scanResults = emptyMap()
                                                 try {
                                                     val results =
                                                             scanner.scan(
@@ -974,7 +980,15 @@ fun ModelApiSettingsSection(
                                                                                             selectedProviderTypeId
                                                                             ),
                                                                     models = modelsList,
-                                                                    onProgress = { _ -> }
+                                                                    onProgress = { health ->
+                                                                        // 探测器在 IO 线程上跑；状态写入回到主线程。
+                                                                        // Probes run on IO; hop back to Main for the state write.
+                                                                        withContext(Dispatchers.Main) {
+                                                                            scanResults =
+                                                                                    scanResults +
+                                                                                            (health.modelId to health)
+                                                                        }
+                                                                    }
                                                             )
                                                     scanResults = results.associateBy { it.modelId }
                                                     scanPreferences.saveResults(config.id, results)
