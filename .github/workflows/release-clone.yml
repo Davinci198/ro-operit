@@ -347,6 +347,11 @@ jobs:
           TAG: ${{ inputs.version_tag }}
           VERSION_NAME: ${{ inputs.version_name }}
           REPO: ${{ github.repository }}
+          # Commit and build identifiers are passed through env so they never
+          # reach the shell as interpolated text.
+          TARGET_SHA: ${{ github.sha }}
+          INPUT_VERSION_CODE: ${{ inputs.version_code }}
+          RUN_NUMBER: ${{ github.run_number }}
         run: |
           set -euo pipefail
           PREVIOUS_TAG="$(
@@ -365,7 +370,7 @@ jobs:
           fi
           gh api -X POST "repos/$REPO/releases/generate-notes" \
             -f tag_name="$TAG" \
-            -f target_commitish="${{ github.sha }}" \
+            -f target_commitish="$TARGET_SHA" \
             "${PREVIOUS_ARG[@]}" \
             --jq '.body' > release-notes-generated.md
           {
@@ -375,9 +380,9 @@ jobs:
             echo
             echo "---"
             echo
-            echo "- Version code: ${{ inputs.version_code }}"
-            echo "- Build: #${{ github.run_number }}"
-            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Version code: $INPUT_VERSION_CODE"
+            echo "- Build: #$RUN_NUMBER"
+            echo "- Commit: \`$TARGET_SHA\`"
           } > release-notes.md
           cat release-notes.md
 

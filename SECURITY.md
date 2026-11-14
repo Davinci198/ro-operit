@@ -66,6 +66,25 @@ content is attacker-influenced whenever a prompt, a tool result, or a scraped pa
 ## TLS
 
 Model HTTP clients use the platform's default certificate and hostname validation. The HTTP tool's
-`ignore_ssl=true` parameter is an explicit opt-in for self-signed local endpoints and every use is
-logged at error level. Do not ship a trust-all `TrustManager` or a `hostnameVerifier` that returns
-`true` in code that sends API keys.
+`ignore_ssl=true` parameter exists for self-signed local endpoints, and it is restricted: the bypass
+is only installable for loopback and private-network hosts, so a prompt or a script cannot use it to
+disable certificate verification for internet traffic. Every accepted use is logged at error level.
+Do not ship a trust-all `TrustManager` or a `hostnameVerifier` that returns `true` in code that sends
+API keys.
+
+## Cryptography
+
+The JS bridge (`JsNativeInterfaceDelegates.crypto`) supports:
+
+- `sha256` for anything security-relevant;
+- `AES/GCM/NoPadding` with a 12-byte IV and a 128-bit tag, in the layout
+  `base64(IV || ciphertext+tag)`. GCM is authenticated, so a modified ciphertext fails instead of
+  decrypting to attacker-chosen plaintext. ECB and unauthenticated CBC are not exposed.
+- `md5` **only** as a compatibility shim: the bundled bilibili and jmcomic tools must match
+  third-party MD5 signatures. Never use it for passwords, tokens, or integrity checks.
+
+## Dependencies
+
+`zod` is pinned to `4.6.7` through the `overrides` block in `pnpm-workspace.yaml`. The 3.x line ends
+at `3.25.76`, which carries the memory-exhaustion advisory for oversized constrained collections;
+`@modelcontextprotocol/sdk` 1.31.0 declares `zod: ^3.25 || ^4.0`, so the major upgrade is supported.

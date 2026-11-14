@@ -45,7 +45,7 @@ object ModelListFetcher {
 
     // 使用更长的超时时间
     private val client =
-            UnsafeModelSsl.apply(
+            ModelHttpClientTls.apply(
                     OkHttpClient.Builder()
                             .connectTimeout(30, TimeUnit.SECONDS)
                             .readTimeout(30, TimeUnit.SECONDS)

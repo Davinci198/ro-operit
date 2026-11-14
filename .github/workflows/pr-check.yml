@@ -72,27 +72,36 @@ jobs:
       - name: Check repository hygiene
         id: hygiene
         continue-on-error: true
+        env:
+          BASE_SHA: ${{ steps.plan.outputs.base_sha }}
+          CANDIDATE_SHA: ${{ steps.plan.outputs.candidate_sha }}
         run: |
           python3 ci/script/check_repo_hygiene.py \
-            --base "${{ steps.plan.outputs.base_sha }}" \
-            --candidate "${{ steps.plan.outputs.candidate_sha }}"
+            --base "$BASE_SHA" \
+            --candidate "$CANDIDATE_SHA"
 
       - name: Check Markdown links
         id: markdown
         continue-on-error: true
+        env:
+          BASE_SHA: ${{ steps.plan.outputs.base_sha }}
+          CANDIDATE_SHA: ${{ steps.plan.outputs.candidate_sha }}
         run: |
           python3 ci/script/check_markdown_links.py \
-            --base "${{ steps.plan.outputs.base_sha }}" \
-            --candidate "${{ steps.plan.outputs.candidate_sha }}"
+            --base "$BASE_SHA" \
+            --candidate "$CANDIDATE_SHA"
 
       - name: Check localization changes
         id: localization
         if: steps.plan.outputs.localization == 'true'
         continue-on-error: true
+        env:
+          BASE_SHA: ${{ steps.plan.outputs.base_sha }}
+          CANDIDATE_SHA: ${{ steps.plan.outputs.candidate_sha }}
         run: |
           python3 ci/script/check_localizations.py \
-            --base "${{ steps.plan.outputs.base_sha }}" \
-            --candidate "${{ steps.plan.outputs.candidate_sha }}"
+            --base "$BASE_SHA" \
+            --candidate "$CANDIDATE_SHA"
 
       - name: Check YAML and Actions workflows
         id: yaml
