@@ -251,6 +251,9 @@ jobs:
           # that end up in shell commands or file paths.
           INPUT_VERSION_CODE: ${{ inputs.version_code }}
           INPUT_VERSION_NAME: ${{ inputs.version_name }}
+          RO_OPERIT_KEYSTORE_B64: ${{ secrets.RO_OPERIT_KEYSTORE_B64 }}
+          RO_OPERIT_KEYSTORE_PASSWORD: ${{ secrets.RO_OPERIT_KEYSTORE_PASSWORD }}
+          RO_OPERIT_KEY_PASSWORD: ${{ secrets.RO_OPERIT_KEY_PASSWORD }}
         run: |
           set -euo pipefail
           echo "sdk.dir=$ANDROID_HOME" > local.properties
@@ -299,10 +302,6 @@ jobs:
           android.nonTransitiveRClass=true
           EOF
           cat gradle.properties
-        env:
-          RO_OPERIT_KEYSTORE_B64: ${{ secrets.RO_OPERIT_KEYSTORE_B64 }}
-          RO_OPERIT_KEYSTORE_PASSWORD: ${{ secrets.RO_OPERIT_KEYSTORE_PASSWORD }}
-          RO_OPERIT_KEY_PASSWORD: ${{ secrets.RO_OPERIT_KEY_PASSWORD }}
 
       - name: Run Gradle build - CLONE RELEASE
         env:

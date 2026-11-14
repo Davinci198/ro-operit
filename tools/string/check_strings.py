@@ -16,17 +16,33 @@ def _reject_xml_decl(*_args, **_kwargs):
 
 
 def _safe_xml_parse_bytes(data):
-    """Parse XML bytes with entity and DTD declarations rejected outright."""
+    """Parse XML bytes with DTD and entity declarations rejected outright.
+
+    Namespaces are expanded so element and attribute names use the ``{uri}name`` form that
+    ElementTree callers expect.
+    """
     import xml.parsers.expat as _expat
 
-    parser = _expat.ParserCreate()
-    parser.StartDoctypeDeclHandler = _reject_xml_decl
-    parser.EntityDeclHandler = _reject_xml_decl
-    parser.UnparsedEntityDeclHandler = _reject_xml_decl
-    parser.ExternalEntityRefHandler = _reject_xml_decl
-
     builder = ET.TreeBuilder()
-    parser.StartElementHandler = builder.start
+    parser = _expat.ParserCreate(namespace_separator="}")
+
+    def _reject(*_args, **_kwargs):
+        raise ValueError("XML DTD/entity declarations are not allowed")
+
+    def _start(name, attrs):
+        # expat yields "uri}local" for namespaced names; ElementTree wants "{uri}local".
+        if "}" in name:
+            name = "{" + name
+        fixed = {}
+        for key, value in attrs.items():
+            fixed["{" + key if "}" in key else key] = value
+        builder.start(name, fixed)
+
+    parser.StartDoctypeDeclHandler = _reject
+    parser.EntityDeclHandler = _reject
+    parser.UnparsedEntityDeclHandler = _reject
+    parser.ExternalEntityRefHandler = _reject
+    parser.StartElementHandler = _start
     parser.EndElementHandler = builder.end
     parser.CharacterDataHandler = builder.data
     parser.Parse(data, True)
