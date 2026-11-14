@@ -43,7 +43,15 @@ var CryptoJS = (function () {
         };
     }
 
-    // MD5 Algorithm
+    // SHA-256: use this for anything security-relevant.
+    const SHA256 = function (message) {
+        const hash = _nativeCrypto('sha256', 'hash', [message]);
+        return createWordArrayResult(hash);
+    };
+
+    // MD5 interop shim. Two bundled tools (bilibili signature `w_rid`, jmcomic protocol
+    // hashing) call third-party endpoints that require MD5, so the bridge must keep it.
+    // It is NOT a security primitive: never use it for passwords, tokens or integrity.
     const MD5 = function (message) {
         const hash = _nativeCrypto('md5', 'hash', [message]);
         return createWordArrayResult(hash);
@@ -53,8 +61,9 @@ var CryptoJS = (function () {
     const AES = {
         decrypt: function (ciphertext, key, cfg) {
             // Authenticated-mode bridge: the ciphertext layout is
-            //   base64( IV[16] || CBC-PKCS7 ciphertext )
-            // so every message carries its own IV. ECB is intentionally not exposed.
+            //   base64( IV[12] || GCM ciphertext+tag )
+            // so every message carries its own IV and the tag is verified by the
+            // native side. ECB and unauthenticated CBC are intentionally not exposed.
             const keyString = (key && typeof key === 'object' && key.data) ? key.data : String(key);
 
             const decrypted = _nativeCrypto('aes', 'decrypt', [ciphertext, keyString]);
@@ -95,12 +104,13 @@ var CryptoJS = (function () {
 
     // Modes
     // ECB is deliberately absent: it is not exposed to scripts any more.
-    // The bridge always uses CBC with a per-message IV and PKCS7 padding.
+    // The bridge always uses authenticated GCM with a per-message IV.
     const mode = {};
 
     // --- Export Public API ---
     return {
         MD5: MD5,
+        SHA256: SHA256,
         AES: AES,
         enc: enc,
         pad: pad,

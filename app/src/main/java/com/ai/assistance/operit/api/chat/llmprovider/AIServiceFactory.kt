@@ -196,7 +196,7 @@ private class LlmNetworkEventListener(
 
 private object SharedHttpClient {
     val instance: OkHttpClient by lazy {
-        UnsafeModelSsl.apply(
+        ModelHttpClientTls.apply(
             OkHttpClient.Builder()
                 // Increase the connection timeout to handle slow networks better.
                 .connectTimeout(60, TimeUnit.SECONDS)

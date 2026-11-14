@@ -32,7 +32,7 @@ import java.security.SecureRandom
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.crypto.Cipher
-import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -56,8 +56,8 @@ internal object JsNativeInterfaceDelegates {
     private const val WASM_TYPE_F32 = 3
     private const val WASM_TYPE_F64 = 4
     private const val MAX_SAFE_JS_INTEGER = 9_007_199_254_740_991.0
-    private const val AES_BLOCK_SIZE = 16
-    private const val AES_KEY_SIZE = 32
+    private const val GCM_IV_SIZE = 12
+    private const val GCM_TAG_BITS = 128
 
     /**
      * Derives a fixed-length AES-256 key from an arbitrary key text (hex or passphrase).
@@ -1071,8 +1071,10 @@ internal object JsNativeInterfaceDelegates {
 
             when (algorithm.lowercase()) {
                 "md5" -> {
-                    // MD5 is kept only for interop with third-party protocols that demand it
-                    // (e.g. request signing). It is not a security primitive: use "sha256".
+                    // Interop only. Two bundled tools (bilibili `w_rid`, jmcomic) must match
+                    // third-party MD5 signatures, so the bridge keeps this algorithm.
+                    // It is not a security primitive: prefer "sha256" for anything that
+                    // protects data or authenticates a value.
                     val input = args.getOrNull(0) ?: ""
                     val md = MessageDigest.getInstance("MD5")
                     val digest = md.digest(input.toByteArray(Charsets.UTF_8))
@@ -1096,13 +1098,19 @@ internal object JsNativeInterfaceDelegates {
 
                             val keyBytes = deriveAesKey(keyText)
                             val decodedData = Base64.decode(data, Base64.DEFAULT)
-                            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-                            val iv = decodedData.copyOfRange(0, AES_BLOCK_SIZE)
-                            val ciphertext = decodedData.copyOfRange(AES_BLOCK_SIZE, decodedData.size)
+                            // Layout: base64( iv[12] || ciphertext+tag ). GCM authenticates the
+                            // payload, so a modified ciphertext fails instead of decrypting to
+                            // attacker-chosen plaintext.
+                            require(decodedData.size > GCM_IV_SIZE + GCM_TAG_BITS / 8) {
+                                "Ciphertext is too short to carry a GCM IV and tag"
+                            }
+                            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+                            val iv = decodedData.copyOfRange(0, GCM_IV_SIZE)
+                            val ciphertext = decodedData.copyOfRange(GCM_IV_SIZE, decodedData.size)
                             cipher.init(
                                 Cipher.DECRYPT_MODE,
                                 SecretKeySpec(keyBytes, "AES"),
-                                IvParameterSpec(iv)
+                                GCMParameterSpec(GCM_TAG_BITS, iv)
                             )
                             val decryptedBytes = cipher.doFinal(ciphertext)
                             String(decryptedBytes, Charsets.UTF_8)

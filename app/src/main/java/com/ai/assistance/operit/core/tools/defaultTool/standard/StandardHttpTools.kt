@@ -93,7 +93,8 @@ class StandardHttpTools(private val context: Context) {
             useCookies: Boolean = true,
             proxyHost: String? = null,
             proxyPort: Int = 0,
-            ignoreSsl: Boolean = false
+            ignoreSsl: Boolean = false,
+            urlHost: String? = null
     ): OkHttpClient {
         val builder =
                 OkHttpClient.Builder()
@@ -115,23 +116,53 @@ class StandardHttpTools(private val context: Context) {
         }
 
         if (ignoreSsl) {
-            applyUnsafeSsl(builder)
+            applyUnsafeSsl(builder, urlHost)
         }
 
         return builder.build()
     }
 
+    private val LOOPBACK_HOSTS = setOf("localhost", "127.0.0.1", "::1", "[::1]", "0.0.0.0")
+
+    /**
+     * True for hosts where a disabled certificate check cannot expose traffic to a network
+     * attacker: loopback addresses and RFC1918 / link-local ranges.
+     */
+    @Suppress("RestrictedApi")
+    private fun isLocalOrPrivateHost(host: String?): Boolean {
+        if (host.isNullOrBlank()) return false
+        val normalized = host.lowercase().removePrefix("[").removeSuffix("]")
+        if (normalized in LOOPBACK_HOSTS) return true
+        if (normalized.endsWith(".local") || normalized.endsWith(".localhost")) return true
+        return try {
+            val address = java.net.InetAddress.getByName(normalized)
+            address.isLoopbackAddress ||
+                    address.isLinkLocalAddress ||
+                    address.isSiteLocalAddress ||
+                    address.isAnyLocalAddress
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     /**
      * Opt-in escape hatch for endpoints that present a certificate the platform cannot validate
-     * (self-signed local servers, corporate proxies). It is only reached when the caller passes
-     * `ignore_ssl=true`; the default path in [buildClient] stays fully validated.
+     * (self-signed local servers, routers, development boxes).
      *
-     * Every use is logged so a request that silently disables identity checks is visible in logs.
+     * The bypass is only installable for loopback and private-network hosts: a request that asks to
+     * disable validation for a public host is refused, so a prompt or a script cannot silently turn
+     * off certificate verification for internet traffic.
      */
-    private fun applyUnsafeSsl(builder: OkHttpClient.Builder) {
+    private fun applyUnsafeSsl(builder: OkHttpClient.Builder, host: String?) {
+        if (!isLocalOrPrivateHost(host)) {
+            throw IllegalArgumentException(
+                    "ignore_ssl is only allowed for loopback and private-network hosts; refusing " +
+                            "to disable certificate validation for $host"
+            )
+        }
         AppLogger.e(
                 TAG,
-                "ignore_ssl=true requested: TLS certificate and hostname validation is disabled for this request"
+                "ignore_ssl=true: TLS certificate and hostname validation disabled for local host $host"
         )
 
         val trustManager =
@@ -258,7 +289,8 @@ class StandardHttpTools(private val context: Context) {
                         useCookies = useCookies,
                         proxyHost = proxyHostParam,
                         proxyPort = proxyPortParam?.toIntOrNull() ?: 0,
-                        ignoreSsl = ignoreSslParam?.lowercase() == "true"
+                        ignoreSsl = ignoreSslParam?.lowercase() == "true",
+                        urlHost = url.toHttpUrlOrNull()?.host
                 )
 
         if (customCookies != null) {
@@ -700,7 +732,8 @@ class StandardHttpTools(private val context: Context) {
                             useCookies = useCookiesParam?.lowercase() != "false",
                             proxyHost = proxyHostParam,
                             proxyPort = proxyPortParam?.toIntOrNull() ?: 0,
-                            ignoreSsl = ignoreSslParam?.lowercase() == "true"
+                            ignoreSsl = ignoreSslParam?.lowercase() == "true",
+                            urlHost = url.toHttpUrlOrNull()?.host
                     )
 
             // 如果有自定义Cookie，添加到cookieStore
