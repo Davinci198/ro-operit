@@ -121,7 +121,19 @@ class StandardHttpTools(private val context: Context) {
         return builder.build()
     }
 
+    /**
+     * Opt-in escape hatch for endpoints that present a certificate the platform cannot validate
+     * (self-signed local servers, corporate proxies). It is only reached when the caller passes
+     * `ignore_ssl=true`; the default path in [buildClient] stays fully validated.
+     *
+     * Every use is logged so a request that silently disables identity checks is visible in logs.
+     */
     private fun applyUnsafeSsl(builder: OkHttpClient.Builder) {
+        AppLogger.e(
+                TAG,
+                "ignore_ssl=true requested: TLS certificate and hostname validation is disabled for this request"
+        )
+
         val trustManager =
                 object : X509TrustManager {
                     override fun checkClientTrusted(

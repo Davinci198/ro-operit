@@ -28,9 +28,11 @@ import com.ai.assistance.operit.util.ToolPkgWasmRuntime
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.security.MessageDigest
+import java.security.SecureRandom
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -54,6 +56,29 @@ internal object JsNativeInterfaceDelegates {
     private const val WASM_TYPE_F32 = 3
     private const val WASM_TYPE_F64 = 4
     private const val MAX_SAFE_JS_INTEGER = 9_007_199_254_740_991.0
+    private const val AES_BLOCK_SIZE = 16
+    private const val AES_KEY_SIZE = 32
+
+    /**
+     * Derives a fixed-length AES-256 key from an arbitrary key text (hex or passphrase).
+     * Accepts 16/24/32-byte hex or raw people-facing passphrases; anything else is
+     * stretched with SHA-256 so the cipher always gets a valid key length.
+     */
+    private fun deriveAesKey(keyText: String): ByteArray {
+        val hexCandidate =
+            if (keyText.length == 32 || keyText.length == 48 || keyText.length == 64) {
+                keyText.chunked(2).mapNotNull { it.toIntOrNull(16)?.toByte() }.toByteArray()
+            } else {
+                ByteArray(0)
+            }
+
+        val raw = if (hexCandidate.isNotEmpty()) hexCandidate else keyText.toByteArray(Charsets.UTF_8)
+
+        return when (raw.size) {
+            16, 24, 32 -> raw
+            else -> MessageDigest.getInstance("SHA-256").digest(raw)
+        }
+    }
 
     private data class ParsedToolCall(
         val params: Map<String, String>,
@@ -1046,8 +1071,16 @@ internal object JsNativeInterfaceDelegates {
 
             when (algorithm.lowercase()) {
                 "md5" -> {
+                    // MD5 is kept only for interop with third-party protocols that demand it
+                    // (e.g. request signing). It is not a security primitive: use "sha256".
                     val input = args.getOrNull(0) ?: ""
                     val md = MessageDigest.getInstance("MD5")
+                    val digest = md.digest(input.toByteArray(Charsets.UTF_8))
+                    digest.joinToString("") { "%02x".format(it) }
+                }
+                "sha256" -> {
+                    val input = args.getOrNull(0) ?: ""
+                    val md = MessageDigest.getInstance("SHA-256")
                     val digest = md.digest(input.toByteArray(Charsets.UTF_8))
                     digest.joinToString("") { "%02x".format(it) }
                 }
@@ -1055,35 +1088,23 @@ internal object JsNativeInterfaceDelegates {
                     when (operation.lowercase()) {
                         "decrypt" -> {
                             val data = args.getOrNull(0) ?: ""
-                            val keyHex =
+                            val keyText =
                                 args.getOrNull(1)
                                     ?: throw IllegalArgumentException(
                                         "Missing key for AES decryption"
                                     )
 
-                            val keyBytes = keyHex.toByteArray(Charsets.UTF_8)
-                            val secretKey = SecretKeySpec(keyBytes, "AES")
-                            val cipher = Cipher.getInstance("AES/ECB/NoPadding")
-                            cipher.init(Cipher.DECRYPT_MODE, secretKey)
+                            val keyBytes = deriveAesKey(keyText)
                             val decodedData = Base64.decode(data, Base64.DEFAULT)
-                            val decryptedWithPadding = cipher.doFinal(decodedData)
-
-                            if (decryptedWithPadding.isEmpty()) {
-                                return ""
-                            }
-
-                            val paddingLength = decryptedWithPadding.last().toInt()
-
-                            if (paddingLength < 1 || paddingLength > decryptedWithPadding.size) {
-                                throw Exception("Invalid PKCS7 padding length: $paddingLength")
-                            }
-
-                            val decryptedBytes =
-                                decryptedWithPadding.copyOfRange(
-                                    0,
-                                    decryptedWithPadding.size - paddingLength
-                                )
-
+                            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+                            val iv = decodedData.copyOfRange(0, AES_BLOCK_SIZE)
+                            val ciphertext = decodedData.copyOfRange(AES_BLOCK_SIZE, decodedData.size)
+                            cipher.init(
+                                Cipher.DECRYPT_MODE,
+                                SecretKeySpec(keyBytes, "AES"),
+                                IvParameterSpec(iv)
+                            )
+                            val decryptedBytes = cipher.doFinal(ciphertext)
                             String(decryptedBytes, Charsets.UTF_8)
                         }
                         else -> throw IllegalArgumentException("Unknown AES operation: $operation")

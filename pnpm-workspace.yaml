@@ -3,3 +3,23 @@ packages:
 
 allowBuilds:
   esbuild: true
+
+# Supply-chain hardening.
+#
+# blockExoticSubdeps: refuse transitive dependencies that point at a tarball URL, a git ref, or
+#   a local path, so a published package cannot smuggle in code from outside the registry.
+# minimumReleaseAge: wait before adopting a freshly published version, which is when a hijacked
+#   or malicious release is most likely to be picked up.
+# trustPolicy: only trust the registry's own signed metadata for the dependencies in this workspace.
+# A strict "no-downgrade" rejects legitimate older transitives already pinned by parents
+# (undici-types@6.20.0 comes from @types/node and resolves to the official registry tarball),
+# so it is left off here; the overrides below handle the known-vulnerable packages directly.
+blockExoticSubdeps: true
+minimumReleaseAge: 10080
+
+# Security overrides for transitive packages that the parent still pins to a vulnerable range.
+# These are the versions Suricode's scan asked for; keep them until the parents catch up.
+overrides:
+  fast-uri: ^3.1.6
+  picomatch@<4.0.0: ^2.3.2
+  zod: "^3.25.76 || ^4.6.6"

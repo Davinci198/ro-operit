@@ -48,10 +48,12 @@ jobs:
     timeout-minutes: 120
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 1
           submodules: recursive
+          # Privileged release workflow that publishes artifacts: keep credentials off disk.
+          persist-credentials: false
 
       - name: Free disk space
         run: |
@@ -76,16 +78,16 @@ jobs:
           fi
           cat gradle/wrapper/gradle-wrapper.properties
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -95,14 +97,14 @@ jobs:
         run: echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-clone-ndk27-v4-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}-${{ github.run_number }}
-          restore-keys: |
-            gradle-clone-ndk27-v4-
+          # Privileged release job: scope the key per commit and drop the broad restore-keys,
+          # so a cache written by an untrusted run can never be restored here.
+          key: gradle-clone-ndk27-v5-${{ github.sha }}-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
 
       - name: Install SDK/NDK/CMake
         run: |
@@ -111,7 +113,7 @@ jobs:
 
       - name: Restore manual deps cache
         id: cache-manual-deps
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ${{ env.MANUAL_DEPS_DIR }}
           key: manual-deps-full-${{ hashFiles('ci/script/download_android_dependencies.sh') }}
@@ -125,7 +127,7 @@ jobs:
           python3 ci/script/prepare_android_dependencies.py --profile full --archives "$MANUAL_DEPS_DIR" --repository "$GITHUB_WORKSPACE"
 
       - name: Cache Rust cargo
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: |
             ~/.cargo/registry
@@ -244,11 +246,26 @@ jobs:
 
       - name: Configure SDK + Signing + Memory FIX
         shell: bash
+        env:
+          # Release inputs arrive as env values; the script quotes them and validates the ones
+          # that end up in shell commands or file paths.
+          INPUT_VERSION_CODE: ${{ inputs.version_code }}
+          INPUT_VERSION_NAME: ${{ inputs.version_name }}
         run: |
           set -euo pipefail
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          VERSION_CODE="${{ inputs.version_code }}"
-          VERSION_NAME="${{ inputs.version_name }}"
+          VERSION_CODE="$INPUT_VERSION_CODE"
+          VERSION_NAME="$INPUT_VERSION_NAME"
+          # Validate before the values reach sed or a file path: digits only for the code, a
+          # restricted character set for the version name.
+          if ! [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]; then
+            echo "::error::version_code must be numeric, got: $VERSION_CODE"
+            exit 1
+          fi
+          if ! [[ "$VERSION_NAME" =~ ^[0-9A-Za-z._+-]+$ ]]; then
+            echo "::error::version_name contains unsupported characters: $VERSION_NAME"
+            exit 1
+          fi
           VERSION_NAME_BASE="${VERSION_NAME%-clone}"
           VERSION_NAME_BASE="${VERSION_NAME_BASE%%+*}"
           PATCH_INDEX="${VERSION_NAME#*+}"; PATCH_INDEX="${PATCH_INDEX%-clone}"
@@ -320,7 +337,7 @@ jobs:
           ls -lh "$APK"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: ${{ inputs.version_tag }}
           name: RO-Operit ${{ inputs.version_name }} (clone, signed)
@@ -337,7 +354,7 @@ jobs:
 
       - name: Upload APK Clone
         if: success()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: fix-operit-clone-signed-${{ github.run_number }}
           path: |
@@ -347,7 +364,7 @@ jobs:
 
       - name: Upload log on fail
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: gradle-log-${{ github.run_number }}
           path: |

@@ -566,7 +566,7 @@ export default function Screen(ctx: ComposeDslContext): ComposeNode {
     }
     try {
       const params = { summary_only: true };
-      const dashboardStatus = await withContext("main", { params }, async () => await qqbot_dashboard_status(params));
+      const dashboardStatus = await withContext("main", { params }, "qqbot_dashboard_status", [params]);
       if (!dashboardStatus?.success) {
         logSettingsError("dashboardStatus returned failure", dashboardStatus);
         throw new Error(String(dashboardStatus?.error || "qqbot_dashboard_status failed"));
@@ -645,7 +645,7 @@ export default function Screen(ctx: ComposeDslContext): ComposeNode {
 
     await runAction(
       testConnection ? "save_and_test" : "save_credentials",
-      async () => await withContext("main", { params }, async () => await qqbot_configure(params)),
+      async () => await withContext("main", { params }, "qqbot_configure", [params]),
       testConnection ? text.testingDone : text.savingDone
     );
   };
@@ -655,7 +655,7 @@ export default function Screen(ctx: ComposeDslContext): ComposeNode {
     const params: QQBotConfigureParams = { use_sandbox: checked };
     await runAction(
       "save_credentials",
-      async () => await withContext("main", { params }, async () => await qqbot_configure(params)),
+      async () => await withContext("main", { params }, "qqbot_configure", [params]),
       text.savingDone
     );
   };
@@ -685,7 +685,7 @@ export default function Screen(ctx: ComposeDslContext): ComposeNode {
     const params = buildAutomationParams();
     await runAction(
       "save_automation",
-      async () => await withContext("main", { params }, async () => await qqbot_auto_reply_configure(params)),
+      async () => await withContext("main", { params }, "qqbot_auto_reply_configure", [params]),
       text.savingDone
     );
   };
@@ -706,7 +706,7 @@ export default function Screen(ctx: ComposeDslContext): ComposeNode {
     };
     await runAction(
       "save_automation",
-      async () => await withContext("main", { params }, async () => await qqbot_auto_reply_configure(params)),
+      async () => await withContext("main", { params }, "qqbot_auto_reply_configure", [params]),
       text.savingDone
     );
   };
@@ -722,9 +722,7 @@ export default function Screen(ctx: ComposeDslContext): ComposeNode {
     await runAction(
       checked ? "start_service" : "stop_service",
       async () => {
-        return await withContext("main", { checked }, async () => {
-          return checked ? await qqbot_service_start({}) : await qqbot_service_stop({});
-        });
+        return await withContext("main", { checked }, checked ? "qqbot_service_start" : "qqbot_service_stop", [{}]);
       },
       text.actionDone
     );
@@ -1103,7 +1101,7 @@ export default function Screen(ctx: ComposeDslContext): ComposeNode {
           onClick: async () =>
             await runAction(
               "run_once",
-              async () => await withContext("main", {}, async () => await qqbot_auto_reply_run_once()),
+              async () => await withContext("main", {}, "qqbot_auto_reply_run_once", []),
               text.actionDone
             )
         })
