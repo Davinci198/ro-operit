@@ -6,6 +6,14 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
+# Prefer the hardened parser the Python documentation recommends (CVE-safe against XXE and
+# entity-expansion attacks). CI runs on a stdlib-only interpreter, so fall back to the local
+# expat-based parser in _safe_xml_parse_bytes, which rejects every DTD and entity declaration.
+try:  # pragma: no cover - availability depends on the interpreter environment
+    from defusedxml import ElementTree as DEFUSED_ET
+except ImportError:  # pragma: no cover
+    DEFUSED_ET = None
+
 def _safe_xml_parser():
     """Parser that refuses DTD and entity declarations (XXE, billion laughs)."""
     parser = ET.XMLParser()
@@ -22,6 +30,10 @@ def _safe_xml_parse_bytes(data):
     Namespaces are expanded so element and attribute names use the ``{uri}name`` form that
     ElementTree callers expect.
     """
+    if DEFUSED_ET is not None:
+        # defusedxml rejects DTDs, external entities and entity expansion before expat sees them.
+        return DEFUSED_ET.fromstring(data)
+
     import xml.parsers.expat as _expat
 
     builder = ET.TreeBuilder()
