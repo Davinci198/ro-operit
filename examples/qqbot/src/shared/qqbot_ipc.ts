@@ -91,6 +91,13 @@ function registerQQBotContextRunner(): void {
   );
 }
 
+type QQBotContextOperationSignatures = typeof QQBotRuntime & typeof QQBotAutoReply;
+
+const qqbotContextOperationSignatures: QQBotContextOperationSignatures = {
+  ...QQBotRuntime,
+  ...QQBotAutoReply
+};
+
 registerQQBotContextRunner();
 registerQQBotContextModule(QQBotRuntime as QQBotContextModule);
 registerQQBotContextModule(QQBotAutoReply as QQBotContextModule);
@@ -122,6 +129,23 @@ async function runWithContext<TResult extends object>(
     throw error;
   }
 }
+
+type QQBotOperationName = keyof typeof qqbotContextOperationSignatures;
+
+/**
+ * Return type of a registered context operation, so `withContext` keeps the concrete result type
+ * of the named function instead of falling back to `object`.
+ */
+type QQBotOperationResult<TName extends string> = TName extends keyof typeof qqbotContextOperationSignatures
+  ? Awaited<ReturnType<(typeof qqbotContextOperationSignatures)[TName]>>
+  : object;
+
+export function withContext<TName extends QQBotOperationName>(
+  kind: ToolPkg.RuntimeKind,
+  envs: object,
+  operation: TName,
+  args?: readonly object[]
+): Promise<QQBotOperationResult<TName>>;
 
 export function withContext<TResult extends object>(
   kind: ToolPkg.RuntimeKind,
