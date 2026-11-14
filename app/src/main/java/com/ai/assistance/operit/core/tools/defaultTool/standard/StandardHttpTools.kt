@@ -21,6 +21,7 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import okhttp3.ConnectionSpec
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.FormBody
@@ -31,6 +32,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.TlsVersion
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
@@ -180,10 +182,20 @@ class StandardHttpTools(private val context: Context) {
                     override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
                 }
 
+        // Pin the protocol set to TLSv1.2 and TLSv1.3 so the opt-in bypass cannot negotiate
+        // SSLv3/TLSv1.0/TLSv1.1 on hosts that still advertise them.
         val sslContext = SSLContext.getInstance("TLS")
         sslContext.init(null, arrayOf<TrustManager>(trustManager), SecureRandom())
 
-        builder.sslSocketFactory(sslContext.socketFactory, trustManager)
+        val socketFactory = sslContext.socketFactory
+        builder.sslSocketFactory(socketFactory, trustManager)
+        builder.connectionSpecs(
+                listOf(
+                        ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
+                                .tlsVersions(TlsVersion.TLS_1_3, TlsVersion.TLS_1_2)
+                                .build()
+                )
+        )
         builder.hostnameVerifier { _, _ -> true }
     }
 
