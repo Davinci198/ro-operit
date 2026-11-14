@@ -37,13 +37,15 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 1
           submodules: recursive
+          # This job packages and uploads artifacts; do not leave git credentials on disk.
+          persist-credentials: false
 
       - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
+        uses: jlumbroso/free-disk-space@cf1e78c50ca91e757bab3edc229027eebfc07871 # main
         with:
           tool-cache: false
           android: false
@@ -54,7 +56,7 @@ jobs:
           swap-storage: false
 
       - name: Set up swap 10GB
-        uses: pierotofy/set-swap-space@master
+        uses: pierotofy/set-swap-space@fc79b3f67fa8a838184ce84a674ca12238d2c761 # master
         with:
           swap-size-gb: 10
 
@@ -62,18 +64,18 @@ jobs:
         run: df -h; free -h
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Node 22
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -82,7 +84,7 @@ jobs:
         # setup-android@v4 trage cmdline-tools 20.0 (preview) al carui sdkmanager --licenses pica
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: |
             ~/.gradle/caches
@@ -96,7 +98,7 @@ jobs:
 
       - name: Restore deps cache
         id: cache-deps
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: manual-deps
           key: deps-${{ runner.os }}-${{ hashFiles('ci/script/download_android_dependencies.sh') }}
@@ -138,8 +140,11 @@ jobs:
         env:
           # Gradle workers do not limit the CMake/Ninja jobs spawned by externalNativeBuild.
           CMAKE_BUILD_PARALLEL_LEVEL: '1'
+          # Passed through env so the script body never interpolates event data directly.
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_GRADLE_TASK: ${{ inputs.gradle_task }}
         run: |
-          case "${{ github.event_name }}" in push) TASK=":app:assembleCloneDebug" ;; workflow_dispatch) TASK="${{ inputs.gradle_task }}" ;; *) TASK=":app:assembleCloneDebug" ;; esac
+          case "$EVENT_NAME" in push) TASK=":app:assembleCloneDebug" ;; workflow_dispatch) TASK="$INPUT_GRADLE_TASK" ;; *) TASK=":app:assembleCloneDebug" ;; esac
           chmod +x ./gradlew
           # Memoria se seteaza in gradle.properties, NU prin -D: kotlin.daemon.jvmargs se citeste de acolo,
           # iar valoarea din repo (3g) nu ajunge pentru acest modul -> daemon-ul Kotlin moare cu
@@ -171,7 +176,7 @@ jobs:
 
       - name: Upload APK Clone
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: fix-operit-clone-${{ github.run_number }}
           path: app/build/outputs/apk/**/*.apk
@@ -180,7 +185,7 @@ jobs:
 
       - name: Upload log on fail
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: gradle-log-${{ github.run_number }}
           path: |

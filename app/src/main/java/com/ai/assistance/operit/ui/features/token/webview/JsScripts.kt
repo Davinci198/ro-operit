@@ -72,16 +72,12 @@ object JsScripts {
                             getFromStorage('id_token') ||
                             getFromStorage('access_token');
                 
-                // If no token found in storage, use hardcoded token
+                // No fallback token is shipped in the app. The token must come from the
+                // signed-in webview session; otherwise ask the user to sign in again.
                 if (!token) {
-                    token = "trP/KIrtNAMNnQxN1P1YMivruoy0STI5onzNhCdzo8iOM7CObxaGhjg+w+JPm/jC";
-                    console.log('Using hardcoded token');
-                    // Save for future use
-                    try {
-                        localStorage.setItem('auth_token', token);
-                    } catch (e) {
-                        console.error('Failed to store token:', e);
-                    }
+                    console.log('No auth token found, sign-in required');
+                    Android.onError('Sign-in required');
+                    return;
                 }
                 
                 console.log('Token found (length: ' + token.length + ')');
@@ -184,10 +180,12 @@ object JsScripts {
                             getFromStorage('id_token') ||
                             getFromStorage('access_token');
                 
-                // If no token found in storage, use hardcoded token
+                // No fallback token is shipped in the app. The token must come from the
+                // signed-in webview session; otherwise ask the user to sign in again.
                 if (!token) {
-                    token = "trP/KIrtNAMNnQxN1P1YMivruoy0STI5onzNhCdzo8iOM7CObxaGhjg+w+JPm/jC";
-                    console.log('Using hardcoded token');
+                    console.log('No auth token found, sign-in required');
+                    Android.onError('Sign-in required');
+                    return;
                 }
                 
                 fetch('${DeepseekApiConstants.DEEPSEEK_DELETE_API_KEY_URL}', {

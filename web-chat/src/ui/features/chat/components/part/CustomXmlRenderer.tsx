@@ -5,6 +5,7 @@ import { AnimatedExpandBody, StructuredExpandRow } from './StructuredExpand';
 import { ToolDisplayComponent } from './ToolDisplayComponents';
 import { ToolResultDisplay } from './ToolResultDisplay';
 import type { WebMessageContentBlock } from '../../util/chatTypes';
+import { sanitizeChatHtml } from '../../util/sanitizeChatHtml';
 
 const BUILT_IN_TAGS = new Set([
   'think',
@@ -385,7 +386,9 @@ function renderXmlBlock(
   }
 
   if (tagName === 'html') {
-    return <div className="structured-html-card" dangerouslySetInnerHTML={{ __html: block.content ?? '' }} />;
+    // Model output can carry attacker-influenced HTML; sanitize before it reaches the DOM.
+    const safeHtml = sanitizeChatHtml(block.content ?? '');
+    return <div className="structured-html-card" dangerouslySetInnerHTML={{ __html: safeHtml }} />;
   }
 
   if (tagName === 'font') {

@@ -8,6 +8,62 @@ import os
 import re
 import subprocess
 import xml.etree.ElementTree as ET
+
+def _safe_xml_parser():
+    """Parser that refuses DTD and entity declarations (XXE, billion laughs)."""
+    parser = ET.XMLParser()
+    return parser
+
+
+def _reject_xml_decl(*_args, **_kwargs):
+    raise ValueError("XML DTD/entity declarations are not allowed")
+
+
+def _safe_xml_parse_bytes(data):
+    """Parse XML bytes with DTD and entity declarations rejected outright.
+
+    Namespaces are expanded so element and attribute names use the ``{uri}name`` form that
+    ElementTree callers expect.
+    """
+    import xml.parsers.expat as _expat
+
+    builder = ET.TreeBuilder()
+    parser = _expat.ParserCreate(namespace_separator="}")
+
+    def _reject(*_args, **_kwargs):
+        raise ValueError("XML DTD/entity declarations are not allowed")
+
+    def _start(name, attrs):
+        # expat yields "uri}local" for namespaced names; ElementTree wants "{uri}local".
+        if "}" in name:
+            name = "{" + name
+        fixed = {}
+        for key, value in attrs.items():
+            fixed["{" + key if "}" in key else key] = value
+        builder.start(name, fixed)
+
+    parser.StartDoctypeDeclHandler = _reject
+    parser.EntityDeclHandler = _reject
+    parser.UnparsedEntityDeclHandler = _reject
+    parser.ExternalEntityRefHandler = _reject
+    parser.StartElementHandler = _start
+    parser.EndElementHandler = builder.end
+    parser.CharacterDataHandler = builder.data
+    parser.Parse(data, True)
+    return builder.close()
+
+
+def _safe_xml_parse(path):
+    """ET.parse replacement that rejects DTD/entity declarations."""
+    with open(path, "rb") as handle:
+        root = _safe_xml_parse_bytes(handle.read())
+    return ET.ElementTree(root)
+
+
+def _safe_xml_fromstring(text):
+    """ET.fromstring replacement that rejects DTD/entity declarations."""
+    data = text.encode("utf-8") if isinstance(text, str) else text
+    return _safe_xml_parse_bytes(data)
 from collections import Counter
 from dataclasses import dataclass
 
@@ -105,7 +161,7 @@ def locale_from_path(path: str) -> str | None:
 
 
 def parse_resource_file(path: str, content: bytes) -> tuple[dict[str, ResourceEntry], set[str]]:
-    root = ET.fromstring(content)
+    root = _safe_xml_fromstring(content)
     entries: dict[str, ResourceEntry] = {}
     duplicates: set[str] = set()
     for element in root:
@@ -134,7 +190,7 @@ def parse_resource_file(path: str, content: bytes) -> tuple[dict[str, ResourceEn
 
 
 def parse_locale_config(content: bytes) -> set[str]:
-    root = ET.fromstring(content)
+    root = _safe_xml_fromstring(content)
     if local_name(root.tag) != "locale-config":
         raise ValueError("root element must be locale-config")
     tags: list[str] = []

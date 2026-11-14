@@ -9,7 +9,10 @@ type QQBotContextModuleValue = QQBotContextFunction | object | string | number |
 type QQBotContextModule = Record<string, QQBotContextModuleValue>;
 
 type QQBotContextRunPayload = {
-  functionSource: string;
+  /** Name of a function registered through the context module, e.g. "qqbot_service_start". */
+  operation: string;
+  /** Serialized arguments forwarded to that function. */
+  args: readonly object[];
   envs: object;
 };
 
@@ -38,66 +41,23 @@ function validateContextEnvName(name: string): void {
   }
 }
 
-function buildContextRunnerFactorySource(
-  functionSource: string,
-  envNames: string[],
-  functionNames: string[]
-): string {
-  const envBindings = envNames
-    .map((name) => {
-      validateContextEnvName(name);
-      return `const ${name} = __qqbotContextEnvs[${JSON.stringify(name)}];`;
-    })
-    .join("\n");
-  const functionBindings = functionNames
-    .map((name) => {
-      validateContextEnvName(name);
-      return `const ${name} = __qqbotContextFunctions[${JSON.stringify(name)}];`;
-    })
-    .join("\n");
-  return `(function(__qqbotContextEnvs, __qqbotContextFunctions) {
-${envBindings}
-${functionBindings}
-return (${functionSource});
-})`;
-}
-
-function normalizeContextRunnerSource(functionSource: string): string {
-  const functionNames = Object.keys(qqbotContextFunctions)
-    .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    .join("|");
-  if (!functionNames) {
-    return functionSource;
-  }
-  return functionSource
-    .replace(
-      new RegExp(`\\(\\s*0\\s*,\\s*[A-Za-z_$][A-Za-z0-9_$]*\\.(${functionNames})\\s*\\)`, "g"),
-      "$1"
-    )
-    .replace(
-      new RegExp(`\\b[A-Za-z_$][A-Za-z0-9_$]*\\.(${functionNames})\\b`, "g"),
-      "$1"
-    );
-}
-
 async function executeContextRunner(payload: QQBotContextRunPayload): Promise<object> {
   const envs = payload.envs;
   try {
-    const functionSource = normalizeContextRunnerSource(payload.functionSource);
-    const factorySource = buildContextRunnerFactorySource(
-      functionSource,
-      Object.keys(envs),
-      Object.keys(qqbotContextFunctions)
-    );
-    const createRunner = eval(factorySource) as (
-      envs: object,
-      functions: Record<string, QQBotContextFunction>
-    ) => QQBotContextRunner<object>;
-    const runner = createRunner(envs, qqbotContextFunctions);
-    if (typeof runner !== "function") {
-      throw new Error("withContext runner source did not evaluate to a function");
+    // Only names that were explicitly registered can be invoked. No source text is evaluated,
+    // so a malicious IPC message can at worst call a known bot function with data it controls.
+    const operation = payload.operation;
+    if (typeof operation !== "string" || !Object.prototype.hasOwnProperty.call(qqbotContextFunctions, operation)) {
+      throw new Error(`withContext unknown operation: ${String(operation)}`);
     }
-    return await runner();
+    const runner = qqbotContextFunctions[operation];
+    if (typeof runner !== "function") {
+      throw new Error(`withContext operation is not callable: ${operation}`);
+    }
+
+    const args = Array.isArray(payload.args) ? payload.args : [];
+    const runnerWithEnvs = Object.assign(runner, { __qqbotContextEnvs: envs });
+    return await runnerWithEnvs(...args);
   } catch (error) {
     const errorText = error instanceof Error ? error.message : "withContext runner failed";
     console.error(
@@ -131,6 +91,13 @@ function registerQQBotContextRunner(): void {
   );
 }
 
+type QQBotContextOperationSignatures = typeof QQBotRuntime & typeof QQBotAutoReply;
+
+const qqbotContextOperationSignatures: QQBotContextOperationSignatures = {
+  ...QQBotRuntime,
+  ...QQBotAutoReply
+};
+
 registerQQBotContextRunner();
 registerQQBotContextModule(QQBotRuntime as QQBotContextModule);
 registerQQBotContextModule(QQBotAutoReply as QQBotContextModule);
@@ -138,10 +105,12 @@ registerQQBotContextModule(QQBotAutoReply as QQBotContextModule);
 async function runWithContext<TResult extends object>(
   kind: ToolPkg.RuntimeKind,
   envs: object,
-  runner: QQBotContextRunner<TResult>
+  operation: string,
+  args: readonly object[]
 ): Promise<TResult> {
   const payload: QQBotContextRunPayload = {
-    functionSource: runner.toString(),
+    operation,
+    args,
     envs
   };
   try {
@@ -161,21 +130,42 @@ async function runWithContext<TResult extends object>(
   }
 }
 
+type QQBotOperationName = keyof typeof qqbotContextOperationSignatures;
+
+/**
+ * Return type of a registered context operation, so `withContext` keeps the concrete result type
+ * of the named function instead of falling back to `object`.
+ */
+type QQBotOperationResult<TName extends string> = TName extends keyof typeof qqbotContextOperationSignatures
+  ? Awaited<ReturnType<(typeof qqbotContextOperationSignatures)[TName]>>
+  : object;
+
+export function withContext<TName extends QQBotOperationName>(
+  kind: ToolPkg.RuntimeKind,
+  envs: object,
+  operation: TName,
+  args?: readonly object[]
+): Promise<QQBotOperationResult<TName>>;
+
 export function withContext<TResult extends object>(
   kind: ToolPkg.RuntimeKind,
   envs: object,
-  runner: QQBotContextRunner<TResult>
+  operation: string,
+  args?: readonly object[]
 ): Promise<TResult>;
 
 export function withContext<TResult extends object>(
   kind: ToolPkg.RuntimeKind,
   envs: object,
-  runner?: QQBotContextRunner<TResult>
+  operationOrRunner?: string | QQBotContextRunner<TResult>,
+  args?: readonly object[]
 ): Promise<TResult> {
-  if (!runner) {
-    throw new Error("withContext requires runner");
+  if (typeof operationOrRunner !== "string" || operationOrRunner.length === 0) {
+    throw new Error(
+      "withContext requires the name of a registered operation (executable source text is not accepted)"
+    );
   }
-  return runWithContext(kind, envs, runner);
+  return runWithContext<TResult>(kind, envs, operationOrRunner, args ?? []);
 }
 
 export * from "./qqbot_runtime";

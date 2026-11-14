@@ -1,38 +1,22 @@
 package com.ai.assistance.operit.api.chat.llmprovider
 
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 import okhttp3.OkHttpClient
 
 /**
- * 为模型请求统一关闭 HTTPS 证书链与主机名校验。
- * 当前版本未发布，按新方案直接切换，不保留旧逻辑。
+ * Model HTTP clients.
+ *
+ * Historically this object disabled the TLS certificate chain and hostname checks for every model
+ * request, which let any man-in-the-middle read and rewrite traffic carrying API keys and prompts.
+ * It now leaves the platform defaults in place: the shared client validates the certificate chain,
+ * the hostname, and the revocation status exactly like every other client in the app.
+ *
+ * The name is kept so existing call sites keep compiling; the behaviour is no longer "unsafe".
  */
 internal object UnsafeModelSsl {
     fun apply(builder: OkHttpClient.Builder): OkHttpClient.Builder {
-        val trustManager =
-            object : X509TrustManager {
-                override fun checkClientTrusted(
-                    chain: Array<out X509Certificate>?,
-                    authType: String?
-                ) {}
-
-                override fun checkServerTrusted(
-                    chain: Array<out X509Certificate>?,
-                    authType: String?
-                ) {}
-
-                override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
-            }
-
-        val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(null, arrayOf<TrustManager>(trustManager), SecureRandom())
-
+        // Intentionally a pass-through: OkHttp's default sslSocketFactory and hostnameVerifier
+        // perform full platform validation. Certificate pinning for known endpoints, if it is ever
+        // needed, belongs in a CertificatePinner on the builder rather than a trust-all manager.
         return builder
-            .sslSocketFactory(sslContext.socketFactory, trustManager)
-            .hostnameVerifier { _, _ -> true }
     }
 }

@@ -11,5 +11,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Test input
+        env:
+          # Values from the workflow event are passed through env and quoted in the script,
+          # never expanded directly into the shell command line.
+          TEST_INPUT: ${{ github.event.inputs.test_input }}
         run: |
-          echo "Test successful - input: ${{ github.event.inputs.test_input }}"
+          echo "Test successful - input: ${TEST_INPUT}"

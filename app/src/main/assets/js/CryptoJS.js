@@ -52,11 +52,11 @@ var CryptoJS = (function () {
     // AES Algorithm
     const AES = {
         decrypt: function (ciphertext, key, cfg) {
-            // Reverted to standard signature. The key is now a WordArray-like object.
-            // We extract the raw hex string from it to pass to the native side.
+            // Authenticated-mode bridge: the ciphertext layout is
+            //   base64( IV[16] || CBC-PKCS7 ciphertext )
+            // so every message carries its own IV. ECB is intentionally not exposed.
             const keyString = (key && typeof key === 'object' && key.data) ? key.data : String(key);
 
-            // We now only need ciphertext and the key string.
             const decrypted = _nativeCrypto('aes', 'decrypt', [ciphertext, keyString]);
 
             // Check if native side returned an error object
@@ -93,10 +93,10 @@ var CryptoJS = (function () {
         Pkcs7: {} // Marker object, no implementation needed.
     };
 
-    // Modes (placeholders to satisfy the API)
-    const mode = {
-        ECB: {} // Marker object, no implementation needed.
-    };
+    // Modes
+    // ECB is deliberately absent: it is not exposed to scripts any more.
+    // The bridge always uses CBC with a per-message IV and PKCS7 padding.
+    const mode = {};
 
     // --- Export Public API ---
     return {
