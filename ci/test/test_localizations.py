@@ -141,6 +141,46 @@ class LocalizationAttributionTest(unittest.TestCase):
         self.assertEqual(blocking, [])
         self.assertEqual(existing_count, 1)
 
+    def test_key_missing_from_one_locale_blocks(self) -> None:
+        base = snapshot(
+            {
+                "zh": {"welcome": entry("welcome", "Hello")},
+                "en": {"welcome": entry("welcome", "Hi")},
+                "ro": {"welcome": entry("welcome", "Salut")},
+            }
+        )
+        candidate = snapshot(
+            {
+                "zh": {**base.entries["zh"], "scan": entry("scan", "Scan %1$d")},
+                "en": {**base.entries["en"], "scan": entry("scan", "Scan %1$d")},
+                "ro": base.entries["ro"],
+            }
+        )
+
+        blocking, _ = select_blocking_issues(base, candidate)
+
+        self.assertEqual(
+            [(issue.code, issue.locale, issue.key) for issue in blocking],
+            [("missing", "ro", "scan")],
+        )
+
+    def test_missing_keys_in_a_variant_file_are_not_reported(self) -> None:
+        base = snapshot(
+            {
+                "zh": {"welcome": entry("welcome", "Hello")},
+                "en": {"welcome": entry("welcome", "Hi")},
+            }
+        )
+        candidate = snapshot(base.entries)
+        variant_path = "app/src/main/res/values-en-night/strings.xml"
+        candidate.localized_files[variant_path] = ("en", {})
+        candidate.localized_duplicates[variant_path] = set()
+        candidate.blobs[variant_path] = b"night variant"
+
+        blocking, _ = select_blocking_issues(base, candidate)
+
+        self.assertEqual(blocking, [])
+
     def test_changed_locale_config_blocks_the_remaining_parse_error(self) -> None:
         base = snapshot({"zh": {"welcome": entry("welcome", "Hello")}})
         candidate = snapshot(base.entries)

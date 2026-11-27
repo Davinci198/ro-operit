@@ -3,7 +3,7 @@
 # fix-ndk-arm64-final.sh - Full ARM64 Native Build Fix for Operit
 # Device : Motorola G57 12GB RAM (+12GB swap) + Ubuntu 24 (ARM64)
 # Author : Davinci198 - BUILD SUCCESSFUL in 2h10m (kapt) / 10m42s (assemble)
-# Repo   : https://github.com/Davinci198/fix-operit
+# Repo   : https://github.com/Davinci198/ro-operit
 #          https://github.com/Davinci198/dragonbones-aar-prebuilt
 #
 # Rezolva 8 probleme de cross-compilare pe ARM64:

@@ -79,6 +79,7 @@ def _safe_xml_fromstring(text):
     return _safe_xml_parse_bytes(data)
 from pathlib import Path
 
+from check_kotlin_smells import ERROR_CODES, KOTLIN_SUFFIXES, kotlin_smells
 from check_output import Diagnostic, report
 
 DIFF_CHECK_RE = re.compile(r"^(.*?):(\d+): (.*)$")
@@ -176,6 +177,73 @@ def workspace_errors(candidate_sha: str) -> list[Diagnostic]:
     return errors
 
 
+HUNK_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+
+
+def added_line_numbers(base_sha: str, candidate_sha: str) -> dict[str, set[int]]:
+    """Line numbers each candidate file *adds*, so a check can report only new code.
+
+    Debug intent: whole-file reporting would bury a reviewer in pre-existing findings (this tree has
+    hundreds), which is how a lint gate ends up disabled. `-U0` gives hunks with no context, so every
+    `+` line number comes straight from the `@@ +start,count @@` header.
+    """
+    result = subprocess.run(
+        ["git", "diff", "-U0", "--no-color", "--no-renames", "--diff-filter=ACMRT", base_sha, candidate_sha],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    added: dict[str, set[int]] = {}
+    current: str | None = None
+    for line in result.stdout.splitlines():
+        if line.startswith("+++ b/"):
+            current = line[len("+++ b/") :]
+            added.setdefault(current, set())
+            continue
+        if line.startswith("--- ") or line.startswith("diff --git "):
+            continue
+        match = HUNK_RE.match(line)
+        if match and current is not None:
+            start = int(match.group(1))
+            count = int(match.group(2)) if match.group(2) is not None else 1
+            added[current].update(range(start, start + count))
+    return added
+
+
+def kotlin_smell_diagnostics(
+    path: Path,
+    relative_path: Path,
+    added_lines: set[int],
+    errors: list[Diagnostic],
+    warnings: list[Diagnostic],
+) -> None:
+    """Report the smells a candidate introduces into a Kotlin file.
+
+    Only added lines are reported. `check_kotlin_smells.ERROR_CODES` (empty `catch` blocks and
+    `GlobalScope`) fail the check because they destroy the only evidence of a failure or start work
+    nobody can cancel; the rest (`!!`, `printStackTrace()`) are warnings because they are often
+    deliberate and always visible in review.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return
+
+    for smell in kotlin_smells(text):
+        if smell.line not in added_lines:
+            continue
+        diagnostic = Diagnostic(
+            code=smell.code,
+            path=str(relative_path),
+            line=smell.line,
+            message=smell.message,
+        )
+        if smell.code in ERROR_CODES:
+            errors.append(diagnostic)
+        else:
+            warnings.append(diagnostic)
+
+
 def check_text_file(path: Path, errors: list[Diagnostic]) -> None:
     try:
         text = path.read_text(encoding="utf-8")
@@ -241,9 +309,11 @@ def main() -> int:
 
     repo_root = Path.cwd()
     errors = whitespace_errors(args.base, args.candidate)
+    warnings: list[Diagnostic] = []
     state_errors = workspace_errors(args.candidate)
     errors.extend(state_errors)
     files = changed_files(args.base, args.candidate)
+    added_lines = added_line_numbers(args.base, args.candidate) if not state_errors else {}
 
     if not state_errors:
         for relative_path in files:
@@ -266,11 +336,24 @@ def main() -> int:
                 check_json_file(relative_path, errors)
             elif relative_path.suffix.lower() == ".xml":
                 check_xml_file(relative_path, errors)
+            elif relative_path.suffix.lower() in KOTLIN_SUFFIXES:
+                kotlin_smell_diagnostics(
+                    path,
+                    relative_path,
+                    added_lines.get(str(relative_path), set()),
+                    errors,
+                    warnings,
+                )
 
+    kotlin_files = sum(1 for path in files if path.suffix.lower() in KOTLIN_SUFFIXES)
     return report(
         "Repository hygiene",
         errors,
-        notes=[f"Checked {len(files)} added or modified candidate file(s)."],
+        warnings=warnings,
+        notes=[
+            f"Checked {len(files)} added or modified candidate file(s).",
+            f"Kotlin files scanned for smells introduced by this candidate: {kotlin_files}.",
+        ],
     )
 
 

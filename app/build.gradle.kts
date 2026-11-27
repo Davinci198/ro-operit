@@ -248,6 +248,7 @@ val syncMainAssets by tasks.registering(Sync::class) {
 android {
     namespace = "com.ai.assistance.operit"
     compileSdk = 36
+    ndkVersion = providers.gradleProperty("operit.ndkVersion").get()
 
     sourceSets {
         getByName("main") {
@@ -285,9 +286,16 @@ android {
     defaultConfig {
         applicationId = "com.ai.assistance.operit"
         minSdk = 26
-        targetSdk = 34
+        // Same level as compileSdk (36). Android 15+ ignores Window.setStatusBarColor and
+        // Window.setNavigationBarColor for apps that target SDK 35 or newer, so the system bar
+        // colours are drawn in Compose as well (see ui/theme/Theme.kt); the rest of the readiness
+        // audit is recorded in docs/TODO/target_sdk_36_migration/.
+        targetSdk = 36
         versionCode = 54
-        versionName = "1.16.2+1-clone"
+        // The base versionName must not contain "-clone": the clone flavor appends its own
+        // versionNameSuffix, so the standard build used to report "1.16.2+1-clone" and the clone
+        // build "1.16.2+1-clone-clone".
+        versionName = "1.16.2+1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -301,6 +309,12 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags("-std=c++17")
+                // Every other native module in this repository passes this flag, and NDK 27 (the
+                // version pinned by operit.ndkVersion in gradle.properties) leaves it OFF by
+                // default. src/main/cpp/CMakeLists.txt aligns streamnative and toolpkgwasm by hand,
+                // but it also builds third-party shared targets (ncnn, sherpa-ncnn-jni); without the
+                // flag those keep 4 KB page segments and a 16 KB page device will not load them.
+                arguments += listOf("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
             }
         }
 
@@ -322,9 +336,12 @@ android {
         val releaseSigningConfig = signingConfigs.findByName("release")
 
         release {
-            // FIX R8: cloneRelease pica cu Missing class com.gemalto.jp2.JP2Decoder etc.
-            // Pentru clone dezactivam minify, pentru standard il pastram dar cu dontwarn in proguard
-            // Daca vrei sa pui minify true la loc, pune proguard rules din comentariu
+            // R8 este dezactivat pentru AMBELE flavor-uri: cloneRelease pica cu
+            // "Missing class com.gemalto.jp2.JP2Decoder" etc. Comentariul vechi spunea ca standard
+            // pastreaza minify, ceea ce nu era adevarat - de asta se livra APK-ul nemicsorat.
+            // Ca sa reactivezi minify: completeaza regulile proguard pentru clasele lipsa, apoi
+            // valideaza un build release complet (intrarile proguardFiles de mai jos sunt inerte
+            // cat timp isMinifyEnabled = false).
             isMinifyEnabled = false
             isShrinkResources = false
             proguardFiles(
@@ -347,10 +364,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (releaseSigningConfig != null) {
-                signingConfig = releaseSigningConfig
-            }
             matchingFallbacks += listOf("release")
+            // Semnat intentionat cu cheia de debug. Aici exista si o atribuire
+            // "signingConfig = releaseSigningConfig" care era imediat suprascrisa de linia de mai
+            // jos, deci nu avea niciun efect; a fost eliminata ca sa nu mai induca in eroare.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -563,6 +580,9 @@ dependencies {
     }
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("org.bouncycastle:bcprov-jdk18on:1.78")
+    // bcpkix generates the self-signed certificate used to sign exported APKs on the device (see
+    // KeyStoreHelper); its version has to match bcprov.
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.78")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.0")

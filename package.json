@@ -1,24 +1,21 @@
 {
+    "name": "operit",
+    "version": "1.0.0",
+    "private": true,
+    "license": "LGPL-3.0",
+    "description": "Build tooling for the Operit Android app: the web-chat frontend and the bundled ToolPkg example packages.",
+    "keywords": [],
+    "author": "",
     "scripts": {
-        "build": "webpack",
-        "java2ts": "java2ts config.json",
-        "builder": "node ./build/build.js",
+        "build": "npm run build:webchat",
         "build:examples:github": "node ./examples/github/build.js",
-        "build:webchat": "npm --prefix web-chat run build && npm --prefix web-chat run sync:android-assets"
+        "build:webchat": "npm --prefix web-chat run build && npm --prefix web-chat run sync:android-assets",
+        "test:webchat": "npm --prefix web-chat run test"
     },
     "dependencies": {},
     "devDependencies": {
-        "@types/jest": "^29.5.12",
         "@types/node": "^22.4.1",
-        "copy-paste": "^1.5.3",
         "esbuild": "^0.25.0",
-        "object-sizeof": "^2.6.1",
         "typescript": "5.9.3"
-    },
-    "name": "operit",
-    "version": "1.0.0",
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "description": ""
+    }
 }

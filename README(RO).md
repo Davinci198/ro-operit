@@ -3,15 +3,15 @@
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/github/last-commit/Davinci198/fix-operit" alt="Last Commit">
+  <img src="https://img.shields.io/github/last-commit/Davinci198/ro-operit" alt="Last Commit">
   <img src="https://img.shields.io/badge/Platform-Android_8.0%2B-brightgreen.svg" alt="Platform">
-  <a href="https://github.com/Davinci198/fix-operit/releases/latest"><img src="https://img.shields.io/github/v/release/Davinci198/fix-operit" alt="Latest Release"></a>
+  <a href="https://github.com/Davinci198/ro-operit/releases/latest"><img src="https://img.shields.io/github/v/release/Davinci198/ro-operit" alt="Latest Release"></a>
   <br>
-  <a href="https://github.com/Davinci198/fix-operit/stargazers"><img src="https://img.shields.io/github/stars/Davinci198/fix-operit" alt="GitHub Stars"></a>
-  <a href="https://github.com/Davinci198/fix-operit"><img src="https://img.shields.io/badge/📖-User_Guide-blue.svg" alt="User Guide"></a>
+  <a href="https://github.com/Davinci198/ro-operit/stargazers"><img src="https://img.shields.io/github/stars/Davinci198/ro-operit" alt="GitHub Stars"></a>
+  <a href="https://github.com/Davinci198/ro-operit"><img src="https://img.shields.io/badge/📖-User_Guide-blue.svg" alt="User Guide"></a>
   <a href="docs/doc-src/dev-core/CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions Welcome"></a>
   <br>
-  <a href="https://github.com/Davinci198/fix-operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
+  <a href="https://github.com/Davinci198/ro-operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
 </div>
 
 <div align="center">
@@ -171,10 +171,10 @@ Un ecosistem MCP bogat
 | Element | Descriere |
 |-----|------|
 | 📋 **Cerințe de sistem** | Android 8.0+ (API 26+), recomandat 6GB+ RAM, 5GB+ spațiu liber |
-| 📥 **Descărcare și instalare** | Descarcă cel mai nou APK din [pagina de Release](https://github.com/Davinci198/fix-operit/releases) |
+| 📥 **Descărcare și instalare** | Descarcă cel mai nou APK din [pagina de Release](https://github.com/Davinci198/ro-operit/releases) |
 | 📖 **Ghid de utilizare** | [Site-ul oficial](https://operit.app) conține tutoriale detaliate și exemple |
 
-> **Avertisment de securitate:** Pentru siguranța datelor tale, descarcă aplicația exclusiv din [pagina de Release](https://github.com/Davinci198/fix-operit/releases) oficială sau de pe [site-ul oficial](https://operit.app). Pachetele de instalare descărcate din surse necunoscute pot fi modificate malițios, ducând la scurgeri de date private sau supravegherea dispozitivului.
+> **Avertisment de securitate:** Pentru siguranța datelor tale, descarcă aplicația exclusiv din [pagina de Release](https://github.com/Davinci198/ro-operit/releases) oficială sau de pe [site-ul oficial](https://operit.app). Pachetele de instalare descărcate din surse necunoscute pot fi modificate malițios, ducând la scurgeri de date private sau supravegherea dispozitivului.
 
 **Pași de instalare:** descarcă APK-ul → instalează și pornește → configurează după ghid → începe să-l folosești ✨
 
@@ -428,7 +428,7 @@ Un ecosistem MCP bogat
 </tr>
 </table>
 
-> 📝 **Jurnal complet de modificări**: vizitează [pagina de Releases](https://github.com/Davinci198/fix-operit/releases) pentru detalii despre fiecare versiune
+> 📝 **Jurnal complet de modificări**: vizitează [pagina de Releases](https://github.com/Davinci198/ro-operit/releases) pentru detalii despre fiecare versiune
 
 ---
 
@@ -444,8 +444,8 @@ Bine ai venit în ecosistemul open source Operit! Așteptăm contribuții de toa
 
 Mulțumim tuturor celor care au contribuit la Operit AI!
 
-<a href="https://github.com/Davinci198/fix-operit/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Davinci198/fix-operit" />
+<a href="https://github.com/Davinci198/ro-operit/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Davinci198/ro-operit" />
 </a>
 
 ## 💖 Susținerea dezvoltării
@@ -472,7 +472,7 @@ Pe scurt, asta înseamnă:
 
 ## 📝 Raportarea problemelor
 
-Ai întâmpinat o problemă sau ai sugestii? Deschide un [Issue](https://github.com/Davinci198/fix-operit/issues)!
+Ai întâmpinat o problemă sau ai sugestii? Deschide un [Issue](https://github.com/Davinci198/ro-operit/issues)!
 
 **Ghid pentru raportare:**
 - 📝 Descrie clar problema/sugestia, cu pași de reproducere
@@ -486,11 +486,11 @@ Ai întâmpinat o problemă sau ai sugestii? Deschide un [Issue](https://github.
   <p><b>🚀 Ajută-ne să-l facem cunoscut mai multor oameni — Operit AI 🚀</b></p>
   ## Star History
 
-<a href="https://www.star-history.com/?repos=Davinci198%2Ffix-operit&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=Davinci198%2Fro-operit&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Davinci198/ro-operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Davinci198/ro-operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Davinci198/ro-operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
  </picture>
 </a>
   <br>

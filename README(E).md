@@ -3,15 +3,15 @@
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/github/last-commit/Davinci198/fix-operit" alt="Last Commit">
+  <img src="https://img.shields.io/github/last-commit/Davinci198/ro-operit" alt="Last Commit">
   <img src="https://img.shields.io/badge/Platform-Android_8.0%2B-brightgreen.svg" alt="Platform">
-  <a href="https://github.com/Davinci198/fix-operit/releases/latest"><img src="https://img.shields.io/github/v/release/Davinci198/fix-operit" alt="Latest Release"></a>
+  <a href="https://github.com/Davinci198/ro-operit/releases/latest"><img src="https://img.shields.io/github/v/release/Davinci198/ro-operit" alt="Latest Release"></a>
   <br>
-  <a href="https://github.com/Davinci198/fix-operit/stargazers"><img src="https://img.shields.io/github/stars/Davinci198/fix-operit" alt="GitHub Stars"></a>
-  <a href="https://github.com/Davinci198/fix-operit"><img src="https://img.shields.io/badge/📖-User_Guide-blue.svg" alt="User Guide"></a>
+  <a href="https://github.com/Davinci198/ro-operit/stargazers"><img src="https://img.shields.io/github/stars/Davinci198/ro-operit" alt="GitHub Stars"></a>
+  <a href="https://github.com/Davinci198/ro-operit"><img src="https://img.shields.io/badge/📖-User_Guide-blue.svg" alt="User Guide"></a>
   <a href="docs/doc-src/dev-core/CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions Welcome"></a>
   <br>
-  <a href="https://github.com/Davinci198/fix-operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
+  <a href="https://github.com/Davinci198/ro-operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
 </div>
 
 <div align="center">
@@ -171,10 +171,10 @@ Rich MCP ecosystem
 | Item | Description |
 |------|-------------|
 | 📋 **System Requirements** | Android 8.0+ (API 26+), 6GB+ RAM recommended, 5GB+ free storage |
-| 📥 **Download & Install** | Download the latest APK from the [Release Page](https://github.com/Davinci198/fix-operit/releases) |
+| 📥 **Download & Install** | Download the latest APK from the [Release Page](https://github.com/Davinci198/ro-operit/releases) |
 | 📖 **User Guide** | [Official Website](https://operit.app) with detailed tutorials and examples |
 
-> **Security Warning:** To ensure your data security, please download this application exclusively from the official [Release Page](https://github.com/Davinci198/fix-operit/releases) or the [Official Website](https://operit.app). Installation packages from unofficial sources may be maliciously modified, potentially leading to privacy leaks or device monitoring.
+> **Security Warning:** To ensure your data security, please download this application exclusively from the official [Release Page](https://github.com/Davinci198/ro-operit/releases) or the [Official Website](https://operit.app). Installation packages from unofficial sources may be maliciously modified, potentially leading to privacy leaks or device monitoring.
 
 **Installation Steps:** Download APK → Install & Launch → Follow Setup Guide → Start Using ✨
 
@@ -428,7 +428,7 @@ Rich MCP ecosystem
 </tr>
 </table>
 
-> 📝 **Full Changelog**: Visit the [Releases Page](https://github.com/Davinci198/fix-operit/releases) for detailed updates on each version
+> 📝 **Full Changelog**: Visit the [Releases Page](https://github.com/Davinci198/ro-operit/releases) for detailed updates on each version
 
 ---
 
@@ -444,8 +444,8 @@ Join the Operit open-source ecosystem! We welcome all types of contributions: th
 
 Thanks to all who have contributed to Operit AI!
 
-<a href="https://github.com/Davinci198/fix-operit/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Davinci198/fix-operit" />
+<a href="https://github.com/Davinci198/ro-operit/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Davinci198/ro-operit" />
 </a>
 
 ## 💖 Support Development
@@ -472,7 +472,7 @@ In simple terms, this means:
 
 ## 📝 Feedback
 
-Encountered a problem or have a suggestion? Welcome to [submit an Issue](https://github.com/Davinci198/fix-operit/issues)!
+Encountered a problem or have a suggestion? Welcome to [submit an Issue](https://github.com/Davinci198/ro-operit/issues)!
 
 **Submission Guidelines:**
 - 📝 Clearly describe the problem/suggestion with reproduction steps

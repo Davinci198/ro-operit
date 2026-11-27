@@ -505,7 +505,7 @@
     <string name="about_description">RO-Operit adalah aplikasi asisten cerdas yang membantu pengguna menggunakan perangkat dengan lebih efisien, menyediakan analisis antarmuka, percakapan obrolan, dan fungsi lainnya.</string>
     <string name="about_developer">Pengembang: &lt;a href="https://github.com/Davinci198"&gt;Davinci198&lt;/a&gt;</string>
     <string name="about_contact">Hubungi kami: aaswordsman@foxmail.com</string>
-    <string name="about_website">&lt;a href="https://github.com/Davinci198/fix-operit"&gt;GitHub: https://github.com/Davinci198/fix-operit&lt;/a&gt;</string>
+    <string name="about_website">&lt;a href="https://github.com/Davinci198/ro-operit"&gt;GitHub: https://github.com/Davinci198/ro-operit&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 Operit. Hak cipta dilindungi undang-undang.</string>
     <string name="star_on_github">Beri Bintang di GitHub</string>
     <string name="update_log">Catatan Pembaruan</string>
@@ -7512,4 +7512,17 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="ext_http_example_message_async">Hello</string>
     <string name="ext_http_example_message_broadcast">Hello</string>
 
+    <!-- Model health scan -->
+    <string name="models_scan_test_all">Uji</string>
+    <string name="models_scan_running">Menguji model…</string>
+    <string name="models_scan_summary">%1$d dari %2$d diverifikasi · rata-rata %3$s</string>
+    <string name="models_scan_filter_all">Semua</string>
+    <string name="models_scan_filter_working">Berfungsi</string>
+    <string name="models_scan_filter_broken">Rusak</string>
+    <string name="models_scan_probe_hint">%1$d model ditemukan. Pengujian mengirim satu permintaan singkat dan mengukur latensi sebenarnya.</string>
+    <string name="models_scan_status_ok">Berfungsi</string>
+    <string name="models_scan_status_fail">Rusak</string>
+    <string name="models_scan_status_timeout">Waktu habis</string>
+    <string name="models_scan_clear">Hapus hasil pengujian</string>
+    <string name="models_scan_no_match">Tidak ada model yang cocok dengan filter atau pencarian</string>
 </resources>

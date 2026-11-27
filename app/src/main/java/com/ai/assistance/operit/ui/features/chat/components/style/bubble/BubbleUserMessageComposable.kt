@@ -67,9 +67,8 @@ import com.ai.assistance.operit.ui.theme.resolveConfiguredFontFamily
 import com.ai.assistance.operit.ui.theme.waterGlass
 import java.io.File
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -134,24 +133,28 @@ fun BubbleUserMessageComposable(
     val proxySenderName = if (isHiddenPlaceholder) null else parseResult.proxySenderName
 
     val isProxySender = !proxySenderName.isNullOrBlank()
-    val proxyAvatarUri by remember(proxySenderName, themeSnapshot.customAiAvatarUri) {
-        if (isProxySender) {
-            try {
-                runBlocking {
-                    val characterCard = characterCardManager.findCharacterCardByName(proxySenderName!!)
-                    if (characterCard != null) {
-                        preferencesManager.getAiAvatarForCharacterCardFlow(characterCard.id)
-                    } else {
-                        flowOf(themeSnapshot.customAiAvatarUri)
-                    }
-                }
-            } catch (_: Exception) {
-                flowOf(themeSnapshot.customAiAvatarUri)
-            }
-        } else {
-            flowOf(themeSnapshot.customAiAvatarUri)
+    // produceState instead of runBlocking: the character-card lookup is a suspend function, and
+    // waiting for it synchronously during composition blocks the main thread. That happens on the
+    // chat list's scroll path, once per bubble, so it shows up as dropped frames or an ANR.
+    val proxyAvatarUri by produceState<String?>(
+        initialValue = null,
+        key1 = proxySenderName,
+        key2 = themeSnapshot.customAiAvatarUri
+    ) {
+        val senderName = proxySenderName
+        if (senderName.isNullOrBlank()) {
+            value = themeSnapshot.customAiAvatarUri
+            return@produceState
         }
-    }.collectAsState(initial = null)
+        val characterCard = characterCardManager.findCharacterCardByName(senderName)
+        if (characterCard == null) {
+            value = themeSnapshot.customAiAvatarUri
+            return@produceState
+        }
+        preferencesManager.getAiAvatarForCharacterCardFlow(characterCard.id).collect { configured ->
+            value = configured
+        }
+    }
 
     val avatarUri = remember(customUserAvatarUri, globalUserAvatarUri, proxyAvatarUri, isProxySender) {
         when {

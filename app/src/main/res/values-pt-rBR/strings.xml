@@ -532,7 +532,7 @@
     <string name="about_description">RO-Operit é um aplicativo assistente inteligente que pode ajudar os usuários a usar os dispositivos com mais eficiência, fornecendo análise de interface, diálogo de chat e outras funções.</string>
     <string name="about_developer">Desenvolvedor: &lt;a href="https://github.com/Davinci198"&gt;Davinci198&lt;/a&gt;</string>
     <string name="about_contact">Contate-nos: aaswordsman@foxmail.com</string>
-    <string name="about_website">&lt;a href="https://github.com/Davinci198/fix-operit"&gt;GitHub: https://github.com/Davinci198/fix-operit&lt;/a&gt;</string>
+    <string name="about_website">&lt;a href="https://github.com/Davinci198/ro-operit"&gt;GitHub: https://github.com/Davinci198/ro-operit&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 Operit. Todos os direitos reservados.</string>
     <string name="star_on_github">Clique em uma estrela no GitHub</string>
     <string name="update_log">Registro de alterações</string>
@@ -7349,4 +7349,17 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="ext_http_example_message_async">Hello</string>
     <string name="ext_http_example_message_broadcast">Hello</string>
 
+    <!-- Model health scan -->
+    <string name="models_scan_test_all">Testar</string>
+    <string name="models_scan_running">Testando modelos…</string>
+    <string name="models_scan_summary">%1$d de %2$d verificados · média de %3$s</string>
+    <string name="models_scan_filter_all">Todos</string>
+    <string name="models_scan_filter_working">Funcionando</string>
+    <string name="models_scan_filter_broken">Com defeito</string>
+    <string name="models_scan_probe_hint">%1$d modelos foram descobertos. O teste envia uma solicitação curta e mede a latência real.</string>
+    <string name="models_scan_status_ok">Funcionando</string>
+    <string name="models_scan_status_fail">Com defeito</string>
+    <string name="models_scan_status_timeout">Tempo esgotado</string>
+    <string name="models_scan_clear">Limpar resultados do teste</string>
+    <string name="models_scan_no_match">Nenhum modelo corresponde ao filtro ou à pesquisa</string>
 </resources>

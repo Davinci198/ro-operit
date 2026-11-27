@@ -2,17 +2,61 @@ package com.ai.assistance.operit.core.subpack
 
 import android.content.Context
 import com.ai.assistance.operit.util.AppLogger
+import org.bouncycastle.asn1.x500.X500Name
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import java.io.File
 import java.io.FileInputStream
+import java.math.BigInteger
+import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.Provider
+import java.security.SecureRandom
 import java.security.Security
+import java.util.Base64
+import java.util.Date
 
-/** 密钥库辅助类 统一处理密钥库加载、验证和Provider管理 */
+/** The signing identity used when exporting an APK: keystore file, passwords, alias and key password. */
+data class SubpackSigningIdentity(
+        val keyStoreFile: File,
+        val keyStoreType: String,
+        val keyStorePassword: String,
+        val keyAlias: String,
+        val keyPassword: String
+)
+
+/**
+ * Keystore helper: one place for keystore loading, validation and JCE provider management.
+ *
+ * The signing identity is generated at random once per device and then persisted. This repository
+ * used to ship fixed `jks.jks` / `pkcs12.keystore` files in assets with the password and alias
+ * hardcoded to `android` / `androidkey`: the private key was published together with the APK, every
+ * user's exported app shared one signing identity, and anyone could build an APK that Android
+ * accepts as an update to the same app.
+ */
 class KeyStoreHelper {
     companion object {
         private const val TAG = "KeyStoreHelper"
+
+        private const val PREFS_NAME = "subpack_signing"
+        private const val PREF_KEY_PASSWORD = "keystore_password"
+
+        private const val KEYSTORE_FILE_NAME = "subpack_signing.p12"
+        private const val KEYSTORE_TYPE = "PKCS12"
+        private const val KEY_ALIAS = "operit-subpack"
+        private const val KEY_ALGORITHM = "RSA"
+        private const val KEY_SIZE_BITS = 2048
+        private const val SIGNATURE_ALGORITHM = "SHA256withRSA"
+        private const val CERT_SUBJECT_DN = "CN=Operit Subpack, OU=Operit, O=Operit"
+        private const val CERT_SERIAL_BITS = 64
+        private const val CERT_VALIDITY_MILLIS = 30L * 365 * 24 * 60 * 60 * 1000
+        private const val CERT_CLOCK_SKEW_MILLIS = 24L * 60 * 60 * 1000
+        private const val PASSWORD_BYTES = 24
+
+        /** File names older versions used when copying the bundled keystores into filesDir. */
+        private val LEGACY_KEYSTORE_FILE_NAMES = listOf("pkcs12.keystore", "jks.jks")
 
         // 保存注册的BouncyCastle提供者引用
         private var bcProvider: Provider? = null
@@ -99,99 +143,102 @@ class KeyStoreHelper {
         }
 
         /**
-         * 从应用assets中加载内置密钥库
-         * @param context 应用上下文
-         * @param assetName 资产文件名
-         * @param outputFileName 输出文件名
-         * @return 密钥库文件或null
+         * Return this device's export signing identity; the first call generates an RSA key pair and
+         * a self-signed certificate and writes them into the app-private directory.
+         *
+         * The password is random and lives in the app's private SharedPreferences, i.e. inside the
+         * same sandbox boundary as the keystore file. The identity is reused on this device, so apps
+         * exported repeatedly from the same device can still be installed over one another.
+         *
+         * @param context application context
+         * @return the signing identity
          */
         @JvmStatic
-        fun loadKeystoreFromAsset(
-                context: Context,
-                assetName: String,
-                outputFileName: String
-        ): File? {
-            try {
-                val keystoreFile = File(context.filesDir, outputFileName)
+        fun getOrCreateSigningIdentity(context: Context): SubpackSigningIdentity {
+            registerBouncyCastleProvider()
+            removeLegacySharedKeyStores(context)
 
-                // 如果文件已存在且大小合理，直接返回
-                if (keystoreFile.exists() && keystoreFile.length() > 1000) {
-                    return keystoreFile
-                }
+            val keyStoreFile = File(context.filesDir, KEYSTORE_FILE_NAME)
+            val preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val storedPassword = preferences.getString(PREF_KEY_PASSWORD, null)
 
-                // 如果已存在但可能损坏，先删除
-                if (keystoreFile.exists()) {
-                    keystoreFile.delete()
-                }
-
-                // 从assets复制密钥库文件
-                context.assets.open(assetName).use { input ->
-                    val bytes = input.readBytes()
-
-                    if (bytes.size < 1000) {
-                        AppLogger.e(TAG, "密钥库文件大小异常: ${bytes.size}字节")
-                        return null
-                    }
-
-                    keystoreFile.outputStream().use { output ->
-                        output.write(bytes)
-                        output.flush()
-                    }
-                }
-
-                return if (keystoreFile.exists() && keystoreFile.length() > 1000) {
-                    keystoreFile
-                } else {
-                    null
-                }
-            } catch (e: Exception) {
-                AppLogger.e(TAG, "加载内置密钥库失败: ${e.message}", e)
-                return null
+            if (storedPassword != null &&
+                    keyStoreFile.isFile &&
+                    validateKeystore(keyStoreFile, KEYSTORE_TYPE, storedPassword)
+            ) {
+                return signingIdentity(keyStoreFile, storedPassword)
             }
+
+            val password = generatePassword()
+            createKeyStore(keyStoreFile, password)
+            preferences.edit().putString(PREF_KEY_PASSWORD, password).apply()
+            AppLogger.i(TAG, "Generated this device's export signing identity: ${keyStoreFile.absolutePath}")
+            return signingIdentity(keyStoreFile, password)
         }
 
         /**
-         * 获取或创建应用签名密钥库
-         * @param context 应用上下文
-         * @return 密钥库文件
+         * Delete the shared keystores that older versions copied from assets into filesDir. Their
+         * private keys were distributed publicly inside the APK, so keeping them on the device serves
+         * no purpose.
          */
-        @JvmStatic
-        fun getOrCreateKeystore(context: Context): File {
-            // 确保BouncyCastle提供者已注册
-            registerBouncyCastleProvider()
-
-            // 先尝试PKCS12格式
-            val pkcs12KeyStoreFile = File(context.filesDir, "pkcs12.keystore")
-            if (pkcs12KeyStoreFile.exists() && pkcs12KeyStoreFile.length() > 1000) {
-                if (validateKeystore(pkcs12KeyStoreFile, "PKCS12", "android")) {
-                    return pkcs12KeyStoreFile
+        private fun removeLegacySharedKeyStores(context: Context) {
+            LEGACY_KEYSTORE_FILE_NAMES.forEach { name ->
+                val legacy = File(context.filesDir, name)
+                if (legacy.exists() && !legacy.delete()) {
+                    AppLogger.w(TAG, "Could not delete a legacy shared keystore: ${legacy.absolutePath}")
                 }
             }
+        }
 
-            // 再尝试JKS格式
-            val jksKeyStoreFile = File(context.filesDir, "jks.jks")
-            if (jksKeyStoreFile.exists() && jksKeyStoreFile.length() > 1000) {
-                if (validateKeystore(jksKeyStoreFile, "JKS", "android")) {
-                    return jksKeyStoreFile
-                }
-            }
+        private fun signingIdentity(keyStoreFile: File, password: String): SubpackSigningIdentity {
+            return SubpackSigningIdentity(
+                    keyStoreFile = keyStoreFile,
+                    keyStoreType = KEYSTORE_TYPE,
+                    keyStorePassword = password,
+                    keyAlias = KEY_ALIAS,
+                    keyPassword = password
+            )
+        }
 
-            // 尝试从assets加载
-            val keystoreFiles = listOf(Pair("pkcs12.keystore", "PKCS12"), Pair("jks.jks", "JKS"))
+        private fun generatePassword(): String {
+            val bytes = ByteArray(PASSWORD_BYTES)
+            SecureRandom().nextBytes(bytes)
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+        }
 
-            for ((assetName, type) in keystoreFiles) {
-                try {
-                    val keyStoreFile = loadKeystoreFromAsset(context, assetName, assetName)
-                    if (keyStoreFile != null && validateKeystore(keyStoreFile, type, "android")) {
-                        return keyStoreFile
-                    }
-                } catch (e: Exception) {
-                    // 忽略单个格式错误，继续尝试下一个
-                }
-            }
+        private fun createKeyStore(keyStoreFile: File, password: String) {
+            val keyPair =
+                    KeyPairGenerator.getInstance(KEY_ALGORITHM)
+                            .apply { initialize(KEY_SIZE_BITS, SecureRandom()) }
+                            .generateKeyPair()
 
-            // 如果所有尝试都失败，返回默认文件路径
-            return pkcs12KeyStoreFile
+            val subject = X500Name(CERT_SUBJECT_DN)
+            val notBefore = Date(System.currentTimeMillis() - CERT_CLOCK_SKEW_MILLIS)
+            val notAfter = Date(notBefore.time + CERT_VALIDITY_MILLIS)
+            val serialNumber = BigInteger(CERT_SERIAL_BITS, SecureRandom()).setBit(0)
+
+            val certificate =
+                    JcaX509CertificateConverter()
+                            .getCertificate(
+                                    JcaX509v3CertificateBuilder(
+                                                    subject,
+                                                    serialNumber,
+                                                    notBefore,
+                                                    notAfter,
+                                                    subject,
+                                                    keyPair.public
+                                            )
+                                            .build(
+                                                    JcaContentSignerBuilder(SIGNATURE_ALGORITHM)
+                                                            .build(keyPair.private)
+                                            )
+                            )
+
+            val passwordChars = password.toCharArray()
+            val keyStore = KeyStore.getInstance(KEYSTORE_TYPE)
+            keyStore.load(null, null)
+            keyStore.setKeyEntry(KEY_ALIAS, keyPair.private, passwordChars, arrayOf(certificate))
+            keyStoreFile.outputStream().use { output -> keyStore.store(output, passwordChars) }
         }
     }
 }

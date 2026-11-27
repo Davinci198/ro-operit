@@ -6,12 +6,12 @@ import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
 import android.util.Base64
-import android.webkit.CookieManager
 import com.ai.assistance.operit.core.tools.AIToolHandler
 import com.ai.assistance.operit.core.tools.BinaryFileContentData
 import com.ai.assistance.operit.core.tools.DirectoryListingData
 import com.ai.assistance.operit.data.model.AITool
 import com.ai.assistance.operit.data.model.ToolParameter
+import com.ai.assistance.operit.ui.features.chat.webview.workspace.WorkspaceAccessPolicy
 import com.ai.assistance.operit.ui.features.chat.webview.workspace.workspaceMimeTypeForPath
 import com.ai.assistance.operit.util.AppLogger
 import fi.iki.elonen.NanoHTTPD
@@ -31,7 +31,7 @@ import java.net.Socket
 import java.net.SocketAddress
 import java.net.SocketException
 import java.net.SocketTimeoutException
-import java.util.Locale
+import java.util.UUID
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -43,14 +43,22 @@ import okhttp3.RequestBody.Companion.toRequestBody
 @Serializable
 data class FileApiEntry(val name: String, val isDirectory: Boolean)
 
-/** LocalWebServer - 基于NanoHTTPD的本地Web服务器 用于显示工作空间目录中的文件 */
+/**
+ * LocalWebServer - NanoHTTPD server that serves the files inside the workspace directory.
+ *
+ * It only exists for the on-device WebView workspace preview, so it binds to the loopback address:
+ * binding the wildcard address let every device on the same Wi-Fi read workspace files and use this
+ * device as a proxy. The `/api/` routes additionally require [apiToken], because any page that can
+ * reach loopback (including a third-party site opened in the WebView) can send requests to
+ * 127.0.0.1.
+ */
 class LocalWebServer
 private constructor(
     private val context: Context,
     private val port: Int,
     initialRootPath: String,
     private val type: ServerType
-) : NanoHTTPD(port) {
+) : NanoHTTPD(LOOPBACK_HOST, port) {
 
     @Volatile
     private var rootPath: String = initialRootPath
@@ -69,6 +77,20 @@ private constructor(
     companion object {
         private const val TAG = "LocalWebServer"
         private const val SOCK_CLOEXEC = 0x80000
+
+        /** Listen on the loopback address only: the workspace preview serves the on-device WebView. */
+        private const val LOOPBACK_HOST = "127.0.0.1"
+
+        /** Token required by the `/api/` routes, sent as the [API_TOKEN_HEADER] header or the [API_TOKEN_QUERY] query parameter. */
+        const val API_TOKEN_HEADER = "X-Operit-Workspace-Token"
+        const val API_TOKEN_QUERY = "token"
+
+        /**
+         * API token generated at random per process. It is injected into the pages this server
+         * serves; a local page that does not hold it cannot call the `/api/` routes, so it can
+         * neither use this device as an open proxy nor enumerate the workspace directory.
+         */
+        val apiToken: String = UUID.randomUUID().toString()
 
         // Port constants
         const val WORKSPACE_PORT = 8093
@@ -400,9 +422,9 @@ private constructor(
         val mimeType = getCustomMimeType(uri)
 
         return if (type == ServerType.WORKSPACE && !workspaceEnv.isNullOrBlank()) {
-            serveWorkspaceFileViaTool(uri, mimeType)
+            serveWorkspaceFileViaTool(uri, mimeType, session.headers["origin"])
         } else {
-            serveFileFromDisk(uri, mimeType)
+            serveFileFromDisk(uri, mimeType, session.headers["origin"])
         }
     }
 
@@ -425,9 +447,9 @@ private constructor(
         return if (base == "/") rel else normalizeWebPath(base.trimEnd('/') + rel)
     }
 
-    private fun serveWorkspaceFileViaTool(uri: String, mimeType: String): Response {
+    private fun serveWorkspaceFileViaTool(uri: String, mimeType: String, origin: String?): Response {
         if (!isSafeRelativeWebPath(uri)) {
-            return newFixedLengthResponse(Response.Status.FORBIDDEN, MIME_PLAINTEXT, "Access denied").addCorsHeaders()
+            return newFixedLengthResponse(Response.Status.FORBIDDEN, MIME_PLAINTEXT, "Access denied").addCorsHeaders(origin)
         }
 
         return try {
@@ -450,7 +472,7 @@ private constructor(
                     Response.Status.NOT_FOUND,
                     MIME_PLAINTEXT,
                     result.error ?: "File not found"
-                ).addCorsHeaders()
+                ).addCorsHeaders(origin)
             }
 
             val data = result.result as BinaryFileContentData
@@ -459,21 +481,21 @@ private constructor(
 
             if (mimeType == "text/html") {
                 val htmlContent = String(bytes, Charsets.UTF_8)
-                val injectedHtml = injectErudaIntoHtml(htmlContent)
-                return newFixedLengthResponse(Response.Status.OK, mimeType, injectedHtml).addCorsHeaders()
+                val injectedHtml = injectWorkspaceApiToken(injectErudaIntoHtml(htmlContent))
+                return newFixedLengthResponse(Response.Status.OK, mimeType, injectedHtml).addCorsHeaders(origin)
             }
 
             val inputStream = ByteArrayInputStream(bytes)
             val response = newFixedLengthResponse(Response.Status.OK, mimeType, inputStream, bytes.size.toLong())
-            response.addCorsHeaders()
+            response.addCorsHeaders(origin)
             response
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error serving workspace file via tool", e)
-            newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "Could not read file.").addCorsHeaders()
+            newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "Could not read file.").addCorsHeaders(origin)
         }
     }
 
-    private fun serveFileFromDisk(uri: String, mimeType: String): Response {
+    private fun serveFileFromDisk(uri: String, mimeType: String, origin: String?): Response {
         val file = File(rootPath, uri)
 
         if (!file.exists() || !isInRoot(file)) {
@@ -482,7 +504,7 @@ private constructor(
                 Response.Status.NOT_FOUND,
                 MIME_PLAINTEXT,
                 "File not found"
-            ).addCorsHeaders()
+            ).addCorsHeaders(origin)
         }
 
         return try {
@@ -492,22 +514,39 @@ private constructor(
 
             if (mimeType == "text/html") {
                 val htmlContent = String(bytes, Charsets.UTF_8)
-                val injectedHtml = injectErudaIntoHtml(htmlContent)
-                return newFixedLengthResponse(Response.Status.OK, mimeType, injectedHtml).addCorsHeaders()
+                val injectedHtml = injectWorkspaceApiToken(injectErudaIntoHtml(htmlContent))
+                return newFixedLengthResponse(Response.Status.OK, mimeType, injectedHtml).addCorsHeaders(origin)
             }
 
             // Serve the file from a byte array input stream. This is the robust way to avoid GZIP issues.
             val inputStream = ByteArrayInputStream(bytes)
             val response = newFixedLengthResponse(Response.Status.OK, mimeType, inputStream, bytes.size.toLong())
-            response.addCorsHeaders()
+            response.addCorsHeaders(origin)
             response
         } catch (ioe: IOException) {
+            AppLogger.e(TAG, "Could not read workspace file: ${file.absolutePath}", ioe)
             newFixedLengthResponse(
                 Response.Status.INTERNAL_ERROR,
                 MIME_PLAINTEXT,
                 "Could not read file."
-            ).addCorsHeaders()
+            ).addCorsHeaders(origin)
         }
+    }
+
+    /**
+     * Hand the workspace API token to pages served by this server so they can still call
+     * `/api/files`. The token only appears in the HTML this server returns; it is never written into
+     * the workspace files on disk.
+     */
+    private fun injectWorkspaceApiToken(htmlContent: String): String {
+        val tokenScript =
+            """
+            <script>
+            window.__operitWorkspaceApiToken = '$apiToken';
+            window.__operitWorkspaceApiBase = 'http://127.0.0.1:$port/api/';
+            </script>
+            """.trimIndent()
+        return injectHtmlAtHeadStart(htmlContent, tokenScript)
     }
 
     private fun injectErudaIntoHtml(htmlContent: String): String {
@@ -665,30 +704,56 @@ private constructor(
         return htmlContent + snippet
     }
 
+    /**
+     * Directory containment check. It has to compare "root + separator": otherwise a sibling such as
+     * `workspace-secrets` or `workspaceBackup`, which merely shares the root's prefix, is treated as
+     * being inside the workspace and served to the caller.
+     */
     private fun isInRoot(file: File): Boolean {
         return try {
-            val rootDir = File(rootPath)
-            file.canonicalPath.startsWith(rootDir.canonicalPath)
+            val rootDir = File(rootPath).canonicalFile
+            val target = file.canonicalFile
+            target == rootDir || target.path.startsWith(rootDir.path + File.separator)
         } catch (e: IOException) {
-            AppLogger.e(TAG, "Error checking file path: ${e.message}")
+            AppLogger.e(TAG, "Error checking file path: ${e.message}", e)
             false
         }
     }
 
     private fun handleApiRequest(session: IHTTPSession): Response {
         val uri = session.uri
+        if (!hasValidApiToken(session)) {
+            AppLogger.w(TAG, "Refused $uri: missing or wrong workspace API token")
+            return newFixedLengthResponse(Response.Status.FORBIDDEN, MIME_PLAINTEXT, "Access denied")
+                .addCorsHeaders(session.headers["origin"])
+        }
         return when {
             uri.startsWith("/api/proxy") -> {
                 handleProxyRequest(session)
             }
             uri.startsWith("/api/files") -> {
                 val path = session.parameters["path"]?.get(0) ?: ""
-                listDirectory(path)
+                listDirectory(path, session.headers["origin"])
             }
             else -> {
-                newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "API endpoint not found").addCorsHeaders()
+                newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "API endpoint not found").addCorsHeaders(session.headers["origin"])
             }
         }
+    }
+
+    /**
+     * Token check for the `/api/` routes. The token may arrive as a query parameter (a browser
+     * preflight does not carry custom headers but does keep the query string) or in the
+     * [API_TOKEN_HEADER] header. The comparison is constant-time so the token cannot be inferred
+     * from response timings.
+     */
+    private fun hasValidApiToken(session: IHTTPSession): Boolean {
+        val presented = WorkspaceAccessPolicy.presentedApiToken(
+            session.parameters[API_TOKEN_QUERY]?.firstOrNull(),
+            session.headers,
+            API_TOKEN_HEADER
+        )
+        return WorkspaceAccessPolicy.apiTokenMatches(presented, apiToken)
     }
 
     private fun handleProxyRequest(session: IHTTPSession): Response {
@@ -696,8 +761,7 @@ private constructor(
         if (targetUrl.isBlank()) {
             return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "Missing url").addCorsHeaders(session.headers["origin"])
         }
-        val uri = kotlin.runCatching { java.net.URI(targetUrl) }.getOrNull()
-        if (uri == null || (uri.scheme != "http" && uri.scheme != "https")) {
+        if (!WorkspaceAccessPolicy.isSupportedProxyTarget(targetUrl)) {
             return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "Unsupported url").addCorsHeaders(session.headers["origin"])
         }
 
@@ -715,14 +779,12 @@ private constructor(
 
         val requestBuilder = Request.Builder().url(targetUrl).method(session.method.name, requestBody)
         session.headers.forEach { (name, value) ->
-            val lower = name.lowercase(Locale.US)
-            if (lower in setOf("host", "connection", "content-length", "accept-encoding")) return@forEach
+            // The denylist and the reason behind each entry live in WorkspaceAccessPolicy, which is
+            // covered by JVM unit tests.
+            if (!WorkspaceAccessPolicy.forwardsProxyRequestHeader(name, API_TOKEN_HEADER)) {
+                return@forEach
+            }
             requestBuilder.addHeader(name, value)
-        }
-
-        val cookie = CookieManager.getInstance().getCookie(targetUrl)
-        if (!cookie.isNullOrBlank()) {
-            requestBuilder.addHeader("Cookie", cookie)
         }
 
         return try {
@@ -746,8 +808,7 @@ private constructor(
             }
 
             response.headers.forEach { (name, value) ->
-                val lower = name.lowercase(Locale.US)
-                if (lower in setOf("content-length", "content-encoding", "transfer-encoding", "connection")) return@forEach
+                if (!WorkspaceAccessPolicy.forwardsProxyResponseHeader(name)) return@forEach
                 nanoResponse.addHeader(name, value)
             }
             nanoResponse.addCorsHeaders(session.headers["origin"])
@@ -773,20 +834,20 @@ private constructor(
         }
     }
 
-    private fun listDirectory(relativePath: String): Response {
+    private fun listDirectory(relativePath: String, origin: String?): Response {
         try {
             val toolHandler = AIToolHandler.getInstance(context)
 
             val requestedPath = if (type == ServerType.WORKSPACE && !workspaceEnv.isNullOrBlank()) {
                 if (!isSafeRelativeWebPath(relativePath)) {
-                    return newFixedLengthResponse(Response.Status.FORBIDDEN, MIME_PLAINTEXT, "Access denied").addCorsHeaders()
+                    return newFixedLengthResponse(Response.Status.FORBIDDEN, MIME_PLAINTEXT, "Access denied").addCorsHeaders(origin)
                 }
                 joinVirtualRoot(rootPath, relativePath)
             } else {
                 // Security check: ensure the path is within our root directory
                 val requestedDir = File(rootPath, relativePath).canonicalFile
-                if (!requestedDir.path.startsWith(File(rootPath).canonicalPath)) {
-                    return newFixedLengthResponse(Response.Status.FORBIDDEN, MIME_PLAINTEXT, "Access denied").addCorsHeaders()
+                if (!isInRoot(requestedDir)) {
+                    return newFixedLengthResponse(Response.Status.FORBIDDEN, MIME_PLAINTEXT, "Access denied").addCorsHeaders(origin)
                 }
                 requestedDir.absolutePath
             }
@@ -808,26 +869,35 @@ private constructor(
                 val directoryListing = result.result as DirectoryListingData
                 val apiEntries = directoryListing.entries.map { FileApiEntry(it.name, it.isDirectory) }
                 val jsonResult = Json.encodeToString(apiEntries)
-                return newFixedLengthResponse(Response.Status.OK, "application/json", jsonResult).addCorsHeaders()
+                return newFixedLengthResponse(Response.Status.OK, "application/json", jsonResult).addCorsHeaders(origin)
             } else {
-                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, result.error ?: "Failed to list files").addCorsHeaders()
+                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, result.error ?: "Failed to list files").addCorsHeaders(origin)
             }
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error listing directory", e)
-            return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "Error: ${e.message}").addCorsHeaders()
+            return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "Error: ${e.message}").addCorsHeaders(origin)
         }
     }
 
-    private fun Response.addCorsHeaders(origin: String? = null): Response {
-        val allowOrigin = origin ?: "*"
+    /**
+     * Allow cross-origin reads only for the local workspace pages.
+     *
+     * Reflecting an arbitrary Origin together with `Access-Control-Allow-Credentials: true` lets any
+     * web page read this server's responses, so only `http://localhost:<workspace port>` and
+     * `http://127.0.0.1:<workspace port>` are accepted here. Every other origin gets no CORS headers
+     * at all, and the browser then refuses to let it read the response. Same-origin requests never
+     * needed CORS headers, so static files and the workspace pages themselves are unaffected. The
+     * proxy no longer forwards credentials, so `Access-Control-Allow-Credentials` is not sent either.
+     */
+    private fun Response.addCorsHeaders(origin: String?): Response {
+        val allowOrigin = origin?.let {
+            WorkspaceAccessPolicy.allowedWorkspaceOrigin(it, WORKSPACE_PORT)
+        } ?: return this
         this.addHeader("Access-Control-Allow-Origin", allowOrigin)
         this.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
-        this.addHeader("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Authorization, Origin, Accept")
+        this.addHeader("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Accept, $API_TOKEN_HEADER")
         this.addHeader("Access-Control-Max-Age", "3600")
-        this.addHeader("Access-Control-Allow-Credentials", "true")
-        if (origin != null) {
-            this.addHeader("Vary", "Origin")
-        }
+        this.addHeader("Vary", "Origin")
         return this
     }
 

@@ -88,7 +88,7 @@
     <string name="about_description">RO-Operit es una aplicación de asistente inteligente que ayuda a los usuarios a utilizar sus dispositivos de manera más eficiente, proporcionando funciones como análisis de interfaz y chat.</string>
     <string name="about_developer">Desarrollador: &lt;a href="https://github.com/Davinci198"&gt;Davinci198&lt;/a&gt;</string>
     <string name="about_contact">Contáctenos: aaswordsman@foxmail.com</string>
-    <string name="about_website">&lt;a href="https://github.com/Davinci198/fix-operit"&gt;GitHub: https://github.com/Davinci198/fix-operit&lt;/a&gt;</string>
+    <string name="about_website">&lt;a href="https://github.com/Davinci198/ro-operit"&gt;GitHub: https://github.com/Davinci198/ro-operit&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 Operit. Todos los derechos reservados.</string>
 
     <!-- AI Chat Screen -->
@@ -7579,4 +7579,17 @@ Ahora puede usar el modo AutoGLM en la interfaz de conversación.</string>
     <string name="ext_http_example_message_async">Hello</string>
     <string name="ext_http_example_message_broadcast">Hello</string>
 
+    <!-- Model health scan -->
+    <string name="models_scan_test_all">Probar</string>
+    <string name="models_scan_running">Probando modelos…</string>
+    <string name="models_scan_summary">%1$d de %2$d verificados · %3$s de media</string>
+    <string name="models_scan_filter_all">Todos</string>
+    <string name="models_scan_filter_working">Funcionan</string>
+    <string name="models_scan_filter_broken">Con fallos</string>
+    <string name="models_scan_probe_hint">Se han descubierto %1$d modelos. La prueba envía una solicitud muy corta y mide la latencia real.</string>
+    <string name="models_scan_status_ok">Funciona</string>
+    <string name="models_scan_status_fail">Con fallos</string>
+    <string name="models_scan_status_timeout">Tiempo agotado</string>
+    <string name="models_scan_clear">Borrar resultados de la prueba</string>
+    <string name="models_scan_no_match">Ningún modelo coincide con el filtro o la búsqueda</string>
 </resources>

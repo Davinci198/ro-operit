@@ -30,12 +30,23 @@ object AppLogger {
     const val ASSERT: Int = Log.ASSERT
 
     // Log file configuration
+    private const val TAG = "AppLogger"
     private const val LOG_DIR_NAME = "logs"
     private const val LOG_FILE_NAME = "operit.log"
     private const val PACKAGE_LOG_DIR_NAME = "packageLogs"
     private const val TOOLPKG_LOG_TAG = "ToolPkg"
     private const val MAX_LOG_MESSAGE_CHARS = 12_000
     private const val MAX_LOG_THROWABLE_CHARS = 24_000
+
+    /**
+     * Size cap for a single log file; past it the file is rotated to `<name>.1`. Logging is
+     * append-only, so without a cap a long session fills the user's storage. `packageLogs` also
+     * writes one file per launch into shared external storage, hence the file-count cap as well.
+     */
+    private const val LOG_FILE_MAX_BYTES = 5L * 1024 * 1024
+    private const val ROTATED_FILE_SUFFIX = ".1"
+    private const val PACKAGE_LOG_MAX_FILES = 20
+    private const val PACKAGE_LOG_MAX_BYTES = 2L * 1024 * 1024
 
     // Simple date formatter for log lines
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
@@ -125,10 +136,54 @@ object AppLogger {
             val fileName = startupFileDateFormat.format(Date(startupMs)) + ".log"
             File(dir, fileName).also { file ->
                 packageLogFile = file
+                prunePackageLogs(dir)
             }
         } catch (_: Throwable) {
             null
         }
+    }
+
+    /**
+     * Rotate a log file to `<name>.1` once it exceeds its cap. The files are append-only and would
+     * otherwise grow until the user's storage is full; keeping a single historical file bounds the
+     * space logging can take.
+     */
+    private fun rotateIfFull(file: File, maxBytes: Long) {
+        if (!file.exists() || file.length() < maxBytes) {
+            return
+        }
+        val rotated = File(file.parentFile, file.name + ROTATED_FILE_SUFFIX)
+        if (rotated.exists() && !rotated.delete()) {
+            Log.w(TAG, "Could not delete the rotated log file: ${rotated.absolutePath}")
+            return
+        }
+        if (!file.renameTo(rotated)) {
+            Log.w(TAG, "Log rotation failed: ${file.absolutePath}")
+        }
+    }
+
+    /**
+     * Keep only the newest [PACKAGE_LOG_MAX_FILES] package logs. They are written into shared
+     * external storage, one file per launch, so without pruning they accumulate forever - and their
+     * content is readable by other apps.
+     */
+    private fun prunePackageLogs(dir: File) {
+        val logs =
+                dir.listFiles { file ->
+                    file.isFile &&
+                            (file.name.endsWith(".log") || file.name.endsWith(ROTATED_FILE_SUFFIX))
+                }
+                        ?: return
+        if (logs.size <= PACKAGE_LOG_MAX_FILES) {
+            return
+        }
+        logs.sortedByDescending { it.lastModified() }
+                .drop(PACKAGE_LOG_MAX_FILES)
+                .forEach { stale ->
+                    if (!stale.delete()) {
+                        Log.w(TAG, "Could not delete an expired package log: ${stale.absolutePath}")
+                    }
+                }
     }
 
     // --- Public API mirroring com.ai.assistance.operit.util.AppLogger ---
@@ -245,8 +300,12 @@ object AppLogger {
             val appContext: Context = OperitApplication.instance.applicationContext
             val dir = File(appContext.filesDir, LOG_DIR_NAME)
             val file = File(dir, LOG_FILE_NAME)
-            if (file.exists()) {
-                file.delete()
+            if (file.exists() && !file.delete()) {
+                Log.w(TAG, "Could not reset the log file: ${file.absolutePath}")
+            }
+            val rotated = File(dir, LOG_FILE_NAME + ROTATED_FILE_SUFFIX)
+            if (rotated.exists() && !rotated.delete()) {
+                Log.w(TAG, "Could not reset the rotated log file: ${rotated.absolutePath}")
             }
             logFile = null
             packageLogFile = null
@@ -270,6 +329,7 @@ object AppLogger {
     private fun writeToFileSync(priority: Int, tag: String, msg: String, tr: Throwable?) {
         if (!enableFileLogging) return
         val file = resolveLogFile() ?: return
+        rotateIfFull(file, LOG_FILE_MAX_BYTES)
 
         val time = dateFormat.format(Date())
         val normalizedMessage = normalizeLogMessage(msg)
@@ -327,6 +387,7 @@ object AppLogger {
             return
         }
         val file = resolvePackageLogFile() ?: return
+        rotateIfFull(file, PACKAGE_LOG_MAX_BYTES)
         val packageId = extractFirstMatch(msg, packageIdRegexes)
         val scriptId = extractFirstMatch(msg, scriptRegexes)
         val pluginId = extractFirstMatch(msg, pluginRegexes)

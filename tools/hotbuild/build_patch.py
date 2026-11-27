@@ -436,7 +436,11 @@ def main() -> int:
     ap.add_argument("--from-patch-index", type=int, default=None)
     ap.add_argument("--to-patch-index", type=int, default=None)
     ap.add_argument("--block-size", type=int, default=4096)
-    ap.add_argument("--repo", default="Davinci198/fix-operitNightlyRelease")
+    # GitHub repo slug used for `gh -R`, `api.github.com/repos/<slug>` and release publishing. It has
+    # to be the repository the app's updater reads (`UpdateManager.tryFetchLatestPatchUpdate` queries
+    # Davinci198/ro-operit), otherwise published patches are invisible to the app. The previous
+    # default appended "NightlyRelease" to the repo name, which is not a repository and 404s.
+    ap.add_argument("--repo", default="Davinci198/ro-operit")
     ap.add_argument("--tag", default=None)
     ap.add_argument("--token", default=None)
     ap.add_argument("--no-publish", action="store_true")

@@ -7,8 +7,11 @@
  * attributes. Scripts, event handlers, `javascript:` URLs, `<iframe>`, `<object>`, and `<style>`
  * are dropped.
  *
- * Parsing happens in an inert document (`DOMParser` with `text/html`), whose nodes never load
- * resources or run handlers, so this is safe to call on untrusted input.
+ * Parsing **and** rebuilding happen in an inert document (`DOMParser` with `text/html`), whose nodes
+ * never load resources or run handlers, so this is safe to call on untrusted input. The clean
+ * elements must be created through that inert document: creating them through the live `document`
+ * would start loading an allowlisted `<img src>` as soon as the attribute is set, which turns
+ * sanitizing into a tracking beacon before anything is rendered.
  */
 
 const ALLOWED_TAGS = new Set([
@@ -52,7 +55,7 @@ function cleanAttributes(el: Element): void {
   }
 }
 
-function cleanNode(node: Node, out: Node[]): void {
+function cleanNode(doc: Document, node: Node, out: Node[]): void {
   if (node.nodeType === Node.TEXT_NODE) {
     out.push(node.cloneNode(true));
     return;
@@ -68,12 +71,13 @@ function cleanNode(node: Node, out: Node[]): void {
   if (!ALLOWED_TAGS.has(tag)) {
     // Keep the text of a dropped element so content is not silently lost, but never its tags.
     for (const child of Array.from(el.childNodes)) {
-      cleanNode(child, out);
+      cleanNode(doc, child, out);
     }
     return;
   }
 
-  const clean = document.createElement(tag);
+  // Created in the inert document on purpose: see the note at the top of this file.
+  const clean = doc.createElement(tag);
   for (const attr of Array.from(el.attributes)) {
     clean.setAttribute(attr.name, attr.value);
   }
@@ -82,7 +86,7 @@ function cleanNode(node: Node, out: Node[]): void {
   // Rebuild children into the clean element.
   const childOut: Node[] = [];
   for (const child of Array.from(el.childNodes)) {
-    cleanNode(child, childOut);
+    cleanNode(doc, child, childOut);
   }
   clean.replaceChildren(...childOut);
   out.push(clean);
@@ -102,7 +106,7 @@ export function sanitizeChatHtml(html: string): string {
 
   for (const child of Array.from(doc.body.childNodes)) {
     const out: Node[] = [];
-    cleanNode(child, out);
+    cleanNode(doc, child, out);
     for (const n of out) {
       container.append(n);
     }

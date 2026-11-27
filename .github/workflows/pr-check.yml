@@ -219,6 +219,7 @@ jobs:
         run: |
           set -euo pipefail
           npm --prefix web-chat run typecheck
+          npm --prefix web-chat run test
           npm run build:webchat
 
       - name: Check bundled ToolPkg packages

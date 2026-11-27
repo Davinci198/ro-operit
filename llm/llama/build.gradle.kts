@@ -8,10 +8,12 @@ plugins {
 android {
     namespace = "com.ai.assistance.llama"
     compileSdk = 36
+    ndkVersion = providers.gradleProperty("operit.ndkVersion").get()
 
     defaultConfig {
         minSdk = 26
-        targetSdk = 34
+        // Kept level with :app so lint and this module's own test runs reason about the same SDK.
+        targetSdk = 36
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")

@@ -340,6 +340,21 @@ def snapshot_issues(snapshot: Snapshot) -> list[LocalizationIssue]:
                     f"resource is not present in the zh source: {name}",
                 )
             )
+        # Missing translations are only judged for the primary strings.xml: variant directories such
+        # as values-en-night legitimately hold a subset. Without this check a new key could be
+        # translated into some languages only and still pass CI - which is how models_scan_* ended up
+        # missing from five locales.
+        if snapshot.files.get(locale) == path:
+            for name in sorted(source_names - set(target)):
+                issues.append(
+                    LocalizationIssue(
+                        "missing",
+                        path,
+                        locale,
+                        name,
+                        f"resource is missing from this locale: {name}",
+                    )
+                )
         for name in sorted(source_names & set(target)):
             source_entry = source[name]
             target_entry = target[name]

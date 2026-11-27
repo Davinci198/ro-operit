@@ -202,12 +202,24 @@ public final class ApkReverseHelperFacade {
     ) throws Exception {
         String normalizedMode = signMode == null ? "" : signMode.trim().toLowerCase(Locale.ROOT);
         if ("debug".equals(normalizedMode)) {
-            File debugKeystore = (File) invokeKeyStoreHelper(
-                    "getOrCreateKeystore",
+            // KeyStoreHelper now returns a SubpackSigningIdentity: the signing identity is generated
+            // at random per device, so the password and the alias can no longer be hardcoded (the old
+            // code fixed them to android / androidkey, which belonged to the shared keystore shipped
+            // inside the APK). The real file, passwords, alias and type have to be read from the
+            // returned value.
+            Object identity = invokeKeyStoreHelper(
+                    "getOrCreateSigningIdentity",
                     new Class<?>[]{Context.class},
                     new Object[]{context}
             );
-            return new SignInputs("debug", debugKeystore, "android", "androidkey", "android", "PKCS12");
+            return new SignInputs(
+                    "debug",
+                    (File) invokeIdentityGetter(identity, "getKeyStoreFile"),
+                    (String) invokeIdentityGetter(identity, "getKeyStorePassword"),
+                    (String) invokeIdentityGetter(identity, "getKeyAlias"),
+                    (String) invokeIdentityGetter(identity, "getKeyPassword"),
+                    (String) invokeIdentityGetter(identity, "getKeyStoreType")
+            );
         }
         if (!"keystore".equals(normalizedMode)) {
             throw new IllegalArgumentException("sign_mode must be debug or keystore");
@@ -230,6 +242,11 @@ public final class ApkReverseHelperFacade {
         Class<?> helperClass = Class.forName("com.ai.assistance.operit.core.subpack.KeyStoreHelper");
         Method method = helperClass.getMethod(methodName, parameterTypes);
         return method.invoke(null, args);
+    }
+
+    private static Object invokeIdentityGetter(Object identity, String methodName) throws Exception {
+        Method method = identity.getClass().getMethod(methodName);
+        return method.invoke(identity);
     }
 
     private static void invokeApkSigner(
