@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import unittest
 from collections import Counter
@@ -18,6 +19,17 @@ UNIT_TEST_TASK_RE = re.compile(r"test(?:Standard|Clone)DebugUnitTest")
 # builds its task list in; both carry the literal `:app:` task names.
 TASK_ARRAY_RE = re.compile(r"^[ \t]*tasks\+?=\((?P<tasks>.*)\)[ \t]*$")
 ANDROID_COMPILE_LANES = ("Run Android JVM checks", "Run full Android checks")
+# `providers.gradleProperty("key").get()` throws when the key is absent, so a workflow that
+# replaces gradle.properties has to write every such key back. `>` replaces the file, `>>` appends
+# to it and leaves the checked-out keys in place.
+GRADLE_PROPERTY_REQUIRE_RE = re.compile(r'gradleProperty\(\s*"(?P<key>[^"]+)"\s*\)\s*\.get\(\)')
+GRADLE_PROPERTIES_REDIRECT_RE = re.compile(r"(?P<redirect>>{1,2})\s*gradle\.properties\b")
+# A key counts as written only when a line assigns it (heredoc body or `echo "key=..."`); a comment
+# that merely mentions the key would otherwise satisfy the guard without writing anything.
+WRITTEN_PROPERTY_RE = re.compile(
+    r'^[ \t]*(?:echo[ \t]+["\']?)?(?P<key>[A-Za-z0-9._-]+)[ \t]*=', re.MULTILINE
+)
+SKIP_DIRECTORY_NAMES = frozenset({".git", ".gradle", "build", "node_modules"})
 
 
 def workflow_files() -> list[Path]:
@@ -87,6 +99,28 @@ def task_invocations(block: str) -> list[list[str]]:
             invocations.append(APP_TASK_RE.findall(command))
         index += 1
     return invocations
+
+
+def build_scripts() -> list[Path]:
+    """Every Gradle build script in the repository, skipping dependency and output trees."""
+    scripts: list[Path] = []
+    for root, directories, files in os.walk(REPO_ROOT):
+        directories[:] = [name for name in directories if name not in SKIP_DIRECTORY_NAMES]
+        scripts.extend(Path(root) / name for name in files if name.endswith(".gradle.kts"))
+    return sorted(scripts)
+
+
+def required_gradle_properties() -> set[str]:
+    """Gradle property keys read with `.get()`: their absence fails configuration outright."""
+    keys: set[str] = set()
+    for path in build_scripts():
+        keys.update(GRADLE_PROPERTY_REQUIRE_RE.findall(path.read_text(encoding="utf-8")))
+    return keys
+
+
+def gradle_properties_redirects(block: str) -> list[str]:
+    """Redirect operators aimed at gradle.properties in one step: `>` replaces, `>>` appends."""
+    return [match.group("redirect") for match in GRADLE_PROPERTIES_REDIRECT_RE.finditer(block)]
 
 
 class WorkflowLayoutTest(unittest.TestCase):
@@ -191,6 +225,70 @@ class AndroidGateCoverageTest(unittest.TestCase):
         # The flavor-qualified name is required: the unqualified `testDebugUnitTest` is ambiguous
         # with two product flavors and fails task selection.
         self.assertNotRegex(block, re.compile(r":app:test(?:Debug)?UnitTest\b"))
+
+
+class GradlePropertiesRewriteTest(unittest.TestCase):
+    """A workflow that replaces `gradle.properties` has to write back every required key.
+
+    `release-clone.yml` overwrote the file with a heredoc of CI memory settings. Six build scripts
+    read `operit.ndkVersion` through `providers.gradleProperty(...).get()`, which throws when the key
+    is missing, so the signed release build died during Gradle configuration instead of producing an
+    APK - and it died only for releases, never for a PR, because `pr-check.yml` leaves the file alone.
+    """
+
+    def test_required_keys_survive_a_rewrite(self) -> None:
+        required = required_gradle_properties()
+        self.assertTrue(required, "expected a build script reading a Gradle property with .get()")
+
+        rewrites = 0
+        for path in workflow_files():
+            for name, block in step_blocks(path.read_text(encoding="utf-8")).items():
+                if ">" not in gradle_properties_redirects(block):
+                    continue
+                rewrites += 1
+                written = set(WRITTEN_PROPERTY_RE.findall(block))
+                missing = sorted(required - written)
+                self.assertEqual(
+                    [],
+                    missing,
+                    f"{path.name} step {name!r} rewrites gradle.properties and drops {missing}",
+                )
+
+        self.assertGreaterEqual(rewrites, 1, "no workflow rewrites gradle.properties; guard is moot")
+
+    def test_every_writer_of_gradle_properties_is_classified(self) -> None:
+        # An append leaves the checked-out keys in place, a rewrite does not. Pinning which workflow
+        # does which keeps a new writer from slipping in without the guard above seeing it.
+        writers: dict[str, str] = {}
+        for path in workflow_files():
+            redirects = [
+                redirect
+                for _, block in step_blocks(path.read_text(encoding="utf-8")).items()
+                for redirect in gradle_properties_redirects(block)
+            ]
+            if not redirects:
+                continue
+            writers[path.name] = "rewrite" if ">" in redirects else "append"
+
+        self.assertEqual(
+            {
+                "android-build-optimized.yml": "append",
+                "release-clone.yml": "rewrite",
+            },
+            writers,
+        )
+
+    def test_the_ndk_version_is_taken_from_the_workflow_environment(self) -> None:
+        # One value feeds both sdkmanager and gradle.properties; a literal in either place would let
+        # the installed toolchain and the requested `ndkVersion` drift apart.
+        text = (WORKFLOW_DIR / "release-clone.yml").read_text(encoding="utf-8")
+        written = [line.strip() for line in text.splitlines() if "operit.ndkVersion=" in line]
+        installed = [line.strip() for line in text.splitlines() if "sdkmanager --install" in line]
+
+        self.assertEqual(1, len(written), written)
+        self.assertIn("ANDROID_NDK_VERSION", written[0])
+        self.assertTrue(installed)
+        self.assertTrue(all("ANDROID_NDK_VERSION" in line for line in installed), installed)
 
 
 if __name__ == "__main__":
