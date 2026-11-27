@@ -301,6 +301,13 @@ jobs:
           android.useAndroidX=true
           android.nonTransitiveRClass=true
           EOF
+          # The heredoc above replaces the whole file, and six build scripts read the NDK version
+          # with providers.gradleProperty("operit.ndkVersion").get() (:app, :quickjs, :llm/mnn,
+          # :llm/llama, :avator/mmd, :avator/fbx). `.get()` throws on a missing key, so Gradle
+          # configuration fails before anything is compiled. Write the property back from the
+          # workflow environment: it is the same value this job installs through sdkmanager, so the
+          # two cannot drift apart.
+          echo "operit.ndkVersion=$ANDROID_NDK_VERSION" >> gradle.properties
           cat gradle.properties
 
       - name: Run Gradle build - CLONE RELEASE
