@@ -218,6 +218,17 @@ class AndroidGateCoverageTest(unittest.TestCase):
 
         self.assertEqual([], mixed)
 
+    def test_the_full_lane_checks_for_duplicate_classes(self) -> None:
+        # `checkDuplicateClasses` is the only AGP task that compares the whole runtime classpath by
+        # class name, and it runs during a build that produces dex. A PR that only compiles (or that
+        # lands in the compile-only JVM lane) never reaches it, which is how a BouncyCastle clash
+        # between the legacy jdk15to18 artifacts and our jdk18on line survived 400+ green tests and
+        # killed the signed release after 16 minutes of assembling. The step has to ask for the task
+        # on the flavor this lane already builds - mixing flavors in one invocation is still banned.
+        block = self.blocks[ANDROID_COMPILE_LANES[1]]
+
+        self.assertRegex(block, r":app:checkStandardDebugDuplicateClasses\b")
+
     def test_the_jvm_lane_keeps_running_the_unit_tests(self) -> None:
         block = self.blocks[ANDROID_COMPILE_LANES[0]]
 

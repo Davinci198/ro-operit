@@ -49,6 +49,7 @@ python3 -B ci/script/check_localizations.py --base "$BASE_SHA" --candidate "$CAN
 - 翻译资源：运行 AAPT2 resource compile 检查资源语法，不执行 resource link 或完整 Android 构建
 - Kotlin/Java 和普通 Android 资源：运行 JVM unit tests
 - Native、Gradle 和构建输入：运行 assemble 与 JVM unit tests
+- The full lane also asks for `:app:checkStandardDebugDuplicateClasses`. It is the only AGP task that compares the entire runtime classpath by class name, and it runs during a build that produces dex. A compile-only lane never reaches it: a BouncyCastle clash between the legacy `jdk15to18` artifacts (from pdfbox-android) and the app's `jdk18on` line passed every fast check and every unit test, then killed the signed release after sixteen minutes of assembling.
 - WebChat: runs the TypeScript typecheck, the vitest unit tests (`web-chat/src/**/*.test.ts`, jsdom environment) and the Vite build
 - ToolPkg：重建并核对 GitHub 示例，按独立锁文件编译 WASM 示例，再构建测试集合和生产白名单集合；JSON manifest 声明的入口与 WASM 文件必须存在且进入归档
 

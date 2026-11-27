@@ -445,7 +445,12 @@ jobs:
           # android_full` in ci/script/pr_check.py), so without them such a PR compiles the app and
           # runs no test at all. `testStandardDebugUnitTest` stays on the flavor this lane already
           # compiles instead of adding a second one.
+          # `checkStandardDebugDuplicateClasses` is the AGP task that caught the release-only
+          # BouncyCastle clash (bcprov/bcpkix/bcutil-jdk15to18 from pdfbox-android versus our
+          # jdk18on line) after 16 minutes of assembling the APK. It resolves the same runtime
+          # classpath and compares class names, so it fails in ~a minute, on this lane, on the PR.
           ./gradlew :app:compileStandardDebugKotlin :app:testStandardDebugUnitTest \
+            :app:checkStandardDebugDuplicateClasses \
             --no-daemon --max-workers=2 \
             -Dkotlin.daemon.jvmargs="-Xmx3g" \
             --stacktrace
