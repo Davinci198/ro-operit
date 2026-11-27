@@ -261,5 +261,6 @@ app/build/outputs/apk/clone/app-clone.apk
 | NDK not found. | Make sure **step 4** installed the version named by `operit.ndkVersion` in `gradle.properties` (currently **ndk;27.0.12077973**). |
 | pnpm: command not found | 尚未安装 `pnpm`。请先执行 `sudo npm install -g pnpm`，再重新运行 `python3 ./tools/example_packages/sync_example_packages.py`。 |
 | Missing web-chat/dist. Run `npm --prefix web-chat run build` first. | 尚未构建 `web-chat` 或构建失败。请先执行 `npm --prefix web-chat install`，再在项目根目录执行 `npm run build:webchat`。 |
+| Duplicate class org.bouncycastle.* found in modules bcutil-jdk15to18-1.72.jar ... and bcutil-jdk18on-1.78.jar | Two BouncyCastle lines met. The legacy `jdk15to18` trio arrives transitively (pdfbox-android depends on bcprov/bcpkix/bcutil-jdk15to18:1.72); the app declares the `jdk18on` line. Keep the excludes on the legacy modules in the `configurations.all` block of `app/build.gradle.kts` instead of dropping either line. `:app:checkStandardDebugDuplicateClasses` reports this in a minute; a signed release otherwise fails after assembling. |
 | ERROR: prebuild step failed | `tools/example_packages/sync_example_packages.py` 在预构建 `examples/` 时失败。请先确认已在项目根目录执行 `npm install`，并检查 `pnpm -v`、`python3 --version` 是否可用。 |
 | You have not accepted the license agreements... | 你跳过了或未成功执行接受许可的步骤。请返回 **第四步** 执行 `yes |

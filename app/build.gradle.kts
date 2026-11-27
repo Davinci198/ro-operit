@@ -575,8 +575,18 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.mcp.sdk.client)
     implementation(libs.ktor.client.okhttp)
+    // Two BouncyCastle lines must never meet: the legacy `jdk15to18` artifacts (pulled transitively by
+    // pdfbox-android 2.0.27.0, which depends on bcprov/bcpkix/bcutil-jdk15to18:1.72) and the `jdk18on`
+    // line this app declares below. They ship the same org.bouncycastle.* classes, so merging both
+    // fails with "Duplicate class ... found in modules" during checkDuplicateClasses. Excluding the
+    // legacy line keeps a single copy. Only bcprov was excluded here before; that was enough until
+    // bcpkix-jdk18on (which also drags bcutil-jdk18on) was added, and the pair then collided at dex time.
+    // The duplicates are invisible to compile-only CI lanes, so the PR gate also runs
+    // :app:checkStandardDebugDuplicateClasses.
     configurations.all {
         exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
+        exclude(group = "org.bouncycastle", module = "bcpkix-jdk15to18")
+        exclude(group = "org.bouncycastle", module = "bcutil-jdk15to18")
     }
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("org.bouncycastle:bcprov-jdk18on:1.78")
