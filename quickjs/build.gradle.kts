@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.ai.assistance.quickjs"
     compileSdk = 36
+    ndkVersion = providers.gradleProperty("operit.ndkVersion").get()
 
     defaultConfig {
         minSdk = 26

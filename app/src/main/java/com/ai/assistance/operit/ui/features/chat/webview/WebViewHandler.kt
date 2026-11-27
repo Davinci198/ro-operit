@@ -229,7 +229,7 @@ class WebViewHandler(private val context: Context) {
                 view?.let { injectBlobDownloadHelper(it) }
 
                 if (mode == WebViewMode.WORKSPACE && options.enableWorkspaceCorsProxy) {
-                    view?.let { injectWorkspaceCorsProxyHelper(it) }
+                    view?.let { injectWorkspaceCorsProxyHelper(it, url) }
                 }
 
                 notifyNavigationState(view)
@@ -578,13 +578,25 @@ class WebViewHandler(private val context: Context) {
         webView.evaluateJavascript(js, null)
     }
 
-    private fun injectWorkspaceCorsProxyHelper(webView: WebView) {
+    /**
+     * Inject the proxy helper only into pages served by the local workspace server.
+     *
+     * The workspace WebView can navigate to any external page, and the injected script carries the
+     * workspace API token. Handing that token to a third-party page would let it call the local
+     * `/api/` routes, so the decision is made per page origin and anything that is not a local
+     * workspace page is skipped.
+     */
+    private fun injectWorkspaceCorsProxyHelper(webView: WebView, pageUrl: String?) {
+        if (!isWorkspaceServerPage(pageUrl)) {
+            return
+        }
         val js =
             """
         (function() {
             if (window.__operitCorsProxyInjected) { return; }
             window.__operitCorsProxyInjected = true;
-            const proxyBase = 'http://localhost:${LocalWebServer.WORKSPACE_PORT}/api/proxy?url=';
+            const proxyBase = 'http://localhost:${LocalWebServer.WORKSPACE_PORT}/api/proxy?' +
+                '${LocalWebServer.API_TOKEN_QUERY}=${LocalWebServer.apiToken}&url=';
             function shouldProxy(url) {
                 try {
                     const resolved = new URL(url, window.location.href);
@@ -627,6 +639,22 @@ class WebViewHandler(private val context: Context) {
         """.trimIndent()
 
         webView.evaluateJavascript(js, null)
+    }
+
+    /** Whether the page is served by the local workspace server (`http://localhost|127.0.0.1|::1:<workspace port>`). */
+    private fun isWorkspaceServerPage(pageUrl: String?): Boolean {
+        if (pageUrl.isNullOrBlank()) {
+            return false
+        }
+        val parsed = runCatching { java.net.URI(pageUrl) }.getOrNull() ?: return false
+        if (parsed.scheme != "http") {
+            return false
+        }
+        if (parsed.port != LocalWebServer.WORKSPACE_PORT) {
+            return false
+        }
+        val host = parsed.host?.lowercase(java.util.Locale.US)?.removeSurrounding("[", "]") ?: return false
+        return host == "localhost" || host == "127.0.0.1" || host == "::1"
     }
 
     // 注入特定Blob URL的下载脚本

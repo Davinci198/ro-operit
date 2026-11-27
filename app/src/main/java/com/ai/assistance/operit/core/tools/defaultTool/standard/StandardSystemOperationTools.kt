@@ -34,7 +34,9 @@ import com.ai.assistance.operit.core.tools.system.AndroidShellExecutor
 import com.ai.assistance.operit.data.model.AITool
 import com.ai.assistance.operit.data.model.ToolResult
 import java.util.Locale
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,6 +60,14 @@ open class StandardSystemOperationTools(private val context: Context) {
 
     companion object {
         private const val TAG = "SystemOperationTools"
+
+        /**
+         * Scope for the location-timeout watchdogs. `GlobalScope` is unstructured and cannot be
+         * cancelled, so timeout coroutines kept accumulating for the lifetime of the process; a
+         * SupervisorJob means one failing watchdog does not take the others down, and the dispatcher
+         * stays the same.
+         */
+        private val locationWatchdogScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
         private const val AI_REPLY_CHANNEL_ID = "AI_REPLY_CHANNEL"
         private const val AI_REPLY_CHANNEL_NAME = "Chat Completion Reminder"
@@ -1552,7 +1562,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                                 )
 
                                 // 设置超时
-                                kotlinx.coroutines.GlobalScope.launch {
+                                locationWatchdogScope.launch {
                                     delay(timeout * 1000L)
                                     // 在主线程上移除更新和恢复协程
                                     kotlinx.coroutines.withContext(

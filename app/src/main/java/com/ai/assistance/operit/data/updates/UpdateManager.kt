@@ -145,7 +145,7 @@ class UpdateManager private constructor(private val context: Context) {
                 val patchUpdate: UpdateStatus? =
                     if (betaEnabled) {
                         // Aplicația e un fork independent (Davinci198): patch-urile se
-                        // caută în Davinci198/fix-operit indiferent de flavor.
+                        // caută în Davinci198/ro-operit indiferent de flavor.
                         AppLogger.d(TAG, "beta enabled, trying patch update releases...")
                         val patch = tryFetchLatestPatchUpdate(currentVersion)
                         if (patch != null) {
@@ -177,7 +177,10 @@ class UpdateManager private constructor(private val context: Context) {
                         if (matchResult != null) {
                             Pair(matchResult.groupValues[1], matchResult.groupValues[2])
                         } else {
-                            Pair("Davinci198", "fix-operit") // fallback: repo-ul propriu
+                            // Numele canonic al repo-ului: `fix-operit` a fost redenumit, iar numele
+                            // vechi ar putea fi refolosit, ceea ce ar trimite verificarea de update
+                            // către un repo care nu este al nostru.
+                            Pair("Davinci198", "ro-operit")
                         }
 
                 val githubReleaseUtil = GithubReleaseUtil(context)
@@ -231,7 +234,7 @@ class UpdateManager private constructor(private val context: Context) {
         val isClone = BuildConfig.FLAVOR == "clone"
         // Fork independent: patch-urile provin întotdeauna din repo-ul propriu.
         val owner = "Davinci198"
-        val repo = "fix-operit"
+        val repo = "ro-operit"
         AppLogger.d(TAG, "tryFetchLatestPatchUpdate(): currentVersion=$currentVersion repo=$owner/$repo isClone=$isClone")
         val result = api.getRepositoryReleases(owner = owner, repo = repo, page = 1, perPage = 20)
 

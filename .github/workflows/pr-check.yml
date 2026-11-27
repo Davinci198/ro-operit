@@ -219,6 +219,7 @@ jobs:
         run: |
           set -euo pipefail
           npm --prefix web-chat run typecheck
+          npm --prefix web-chat run test
           npm run build:webchat
 
       - name: Check bundled ToolPkg packages
@@ -439,7 +440,13 @@ jobs:
           # Single build only; do NOT run Standard and Clone flavors together.
           # Explicit heap override: gradle.properties is tuned for ARM64 phone (4g);
           # CI runners need more heap for the full Kotlin compile (OOM fix, PR #9).
-          ./gradlew :app:compileStandardDebugKotlin --no-daemon --max-workers=2 \
+          # The unit tests belong to this lane as well: the planner turns the JVM lane off for a
+          # candidate that changes a build input (`android_jvm` is `android_jvm_change and not
+          # android_full` in ci/script/pr_check.py), so without them such a PR compiles the app and
+          # runs no test at all. `testStandardDebugUnitTest` stays on the flavor this lane already
+          # compiles instead of adding a second one.
+          ./gradlew :app:compileStandardDebugKotlin :app:testStandardDebugUnitTest \
+            --no-daemon --max-workers=2 \
             -Dkotlin.daemon.jvmargs="-Xmx3g" \
             --stacktrace
           if [[ "$INSTRUMENTATION_REQUIRED" == "true" ]]; then

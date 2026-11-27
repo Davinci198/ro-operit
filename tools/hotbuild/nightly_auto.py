@@ -205,7 +205,11 @@ def _rollback_to_apk(from_apk: Path, to_apk: Path) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--repo", default="Davinci198/fix-operitNightlyRelease")
+    # GitHub repo slug used for `gh -R`, `api.github.com/repos/<slug>` and release publishing. It has
+    # to be the repository the app's updater reads (`UpdateManager.tryFetchLatestPatchUpdate` queries
+    # Davinci198/ro-operit), otherwise published patches are invisible to the app. The previous
+    # default appended "NightlyRelease" to the repo name, which is not a repository and 404s.
+    ap.add_argument("--repo", default="Davinci198/ro-operit")
     ap.add_argument("--format", default="apkraw", choices=("apkraw", "apkzip", "opatch"))
     ap.add_argument("--from-version", default=None)
     ap.add_argument("--from-patch-index", type=int, default=None)

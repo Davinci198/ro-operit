@@ -72,5 +72,5 @@ chmod +x fix-ndk-arm64-final.sh
 Legenda: compilat 100% pe telefon!
 
 ## Link-uri
-- Fix Operit: https://github.com/Davinci198/fix-operit
+- Repo (redenumit din `fix-operit`): https://github.com/Davinci198/ro-operit
 - DragonBones AAR: https://github.com/Davinci198/dragonbones-aar-prebuilt

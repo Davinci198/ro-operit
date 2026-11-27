@@ -11,9 +11,10 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
-        maven { url = uri("https://dl.bintray.com/rikkaw/Shizuku") }
-        maven { url = uri("https://api.xposed.info/") }
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+        // Removed from the resolution path: dl.bintray.com (Bintray/JCenter shut down in 2021),
+        // api.xposed.info (no Xposed dependency exists) and the oss.sonatype.org snapshots repository
+        // (no -SNAPSHOT dependency exists). They only slowed every resolution down and kept domains
+        // this project does not control in the artifact search path.
     }
 }
 

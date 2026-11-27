@@ -3,15 +3,15 @@
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/github/last-commit/Davinci198/fix-operit" alt="Last Commit">
+  <img src="https://img.shields.io/github/last-commit/Davinci198/ro-operit" alt="Last Commit">
   <img src="https://img.shields.io/badge/Platform-Android_8.0%2B-brightgreen.svg" alt="Platform">
-  <a href="https://github.com/Davinci198/fix-operit/releases/latest"><img src="https://img.shields.io/github/v/release/Davinci198/fix-operit" alt="Latest Release"></a>
+  <a href="https://github.com/Davinci198/ro-operit/releases/latest"><img src="https://img.shields.io/github/v/release/Davinci198/ro-operit" alt="Latest Release"></a>
   <br>
-  <a href="https://github.com/Davinci198/fix-operit/stargazers"><img src="https://img.shields.io/github/stars/Davinci198/fix-operit" alt="GitHub Stars"></a>
-  <a href="https://github.com/Davinci198/fix-operit"><img src="https://img.shields.io/badge/📖-用户指南-blue.svg" alt="User Guide"></a>
+  <a href="https://github.com/Davinci198/ro-operit/stargazers"><img src="https://img.shields.io/github/stars/Davinci198/ro-operit" alt="GitHub Stars"></a>
+  <a href="https://github.com/Davinci198/ro-operit"><img src="https://img.shields.io/badge/📖-用户指南-blue.svg" alt="User Guide"></a>
   <a href="docs/doc-src/dev-core/CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions Welcome"></a>
   <br>
-  <a href="https://github.com/Davinci198/fix-operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
+  <a href="https://github.com/Davinci198/ro-operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
 </div>
 
 <div align="center">
@@ -171,10 +171,10 @@ AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智�
 | 项目 | 说明 |
 |-----|------|
 | 📋 **系统要求** | Android 8.0+ (API 26+)，建议 6GB+ 内存，5GB+ 剩余存储 |
-| 📥 **下载安装** | [Release页面](https://github.com/Davinci198/fix-operit/releases) 下载最新APK |
+| 📥 **下载安装** | [Release页面](https://github.com/Davinci198/ro-operit/releases) 下载最新APK |
 | 📖 **使用指南** | [官方网站](https://operit.app) 包含详细教程和示例 |
 
-> **安全提示：** 为确保您的数据安全，请务必从官方 [Release页面](https://github.com/Davinci198/fix-operit/releases) 或 [官方网站](https://operit.app) 下载本应用。通过未知渠道下载的安装包可能被恶意修改，从而导致隐私泄露或设备被监听。
+> **安全提示：** 为确保您的数据安全，请务必从官方 [Release页面](https://github.com/Davinci198/ro-operit/releases) 或 [官方网站](https://operit.app) 下载本应用。通过未知渠道下载的安装包可能被恶意修改，从而导致隐私泄露或设备被监听。
 
 **安装步骤：** 下载APK → 安装启动 → 按引导配置 → 开始使用 ✨
 
@@ -428,7 +428,7 @@ AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智�
 </tr>
 </table>
 
-> 📝 **完整更新日志**：访问 [Releases 页面](https://github.com/Davinci198/fix-operit/releases) 查看每个版本的详细更新内容
+> 📝 **完整更新日志**：访问 [Releases 页面](https://github.com/Davinci198/ro-operit/releases) 查看每个版本的详细更新内容
 
 ---
 
@@ -444,8 +444,8 @@ AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智�
 
 感谢所有为 Operit AI 做出贡献的人！
 
-<a href="https://github.com/Davinci198/fix-operit/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Davinci198/fix-operit" />
+<a href="https://github.com/Davinci198/ro-operit/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Davinci198/ro-operit" />
 </a>
 
 ## 💖 支持开发
@@ -472,7 +472,7 @@ AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智�
 
 ## 📝 问题反馈
 
-遇到问题或有建议？欢迎 [提交 Issue](https://github.com/Davinci198/fix-operit/issues)！
+遇到问题或有建议？欢迎 [提交 Issue](https://github.com/Davinci198/ro-operit/issues)！
 
 **提交指南：**
 - 📝 清晰描述问题/建议，提供复现步骤
@@ -486,11 +486,11 @@ AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智�
   <p><b>🚀 帮助我们推广，让更多人了解 Operit AI 🚀</b></p>
   ## Star History
 
-<a href="https://www.star-history.com/?repos=Davinci198%2Ffix-operit&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=Davinci198%2Fro-operit&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Davinci198/fix-operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Davinci198/ro-operit&type=date&theme=dark&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Davinci198/ro-operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Davinci198/ro-operit&type=date&legend=top-left&sealed_token=x2g4HD_vqrg9vWOmPW-1NFSSSJK2LImmWpVQBambbxIE2pHqGHAzid1rnimOClPo9Xjg6oLM4771kAIr_JgdboIOqdJuFVSozXRgW2w2HOOSCBtWbL1w9w" />
  </picture>
 </a>
   <br>

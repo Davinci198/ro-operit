@@ -12,7 +12,7 @@
 
 ## 提交 Issue
 
-请先在 [Issue 区](https://github.com/Davinci198/fix-operit/issues) 搜索相同问题，再选择对应的 Issue Form：
+请先在 [Issue 区](https://github.com/Davinci198/ro-operit/issues) 搜索相同问题，再选择对应的 Issue Form：
 
 - Bug report：错误、崩溃和异常行为
 - Feature request：功能和行为建议
@@ -30,8 +30,8 @@
 - JDK 21
 - Node.js 22、npm 和 pnpm
 - Python 3
-- Android SDK 34/36、Build Tools 34/35
-- NDK 25.1.8937393 和 CMake 3.22.1
+- Android SDK 34/36 (every module uses `compileSdk = 36`), Build Tools 34.0.0/35.0.0
+- NDK 27.0.12077973 and CMake 3.22.1; the NDK version of record is `operit.ndkVersion` in the root `gradle.properties`
 
 Fork 并克隆仓库后，建议保留 `upstream` 远程：
 
@@ -39,7 +39,7 @@ Fork 并克隆仓库后，建议保留 `upstream` 远程：
 git clone https://github.com/<your-account>/Operit.git
 cd Operit
 git submodule update --init --recursive terminal
-git remote add upstream https://github.com/Davinci198/fix-operit.git
+git remote add upstream https://github.com/Davinci198/ro-operit.git
 git fetch upstream
 git switch -c fix/short-description upstream/main
 ```
@@ -69,13 +69,17 @@ python3 -B ci/script/check_repo_hygiene.py --base "$BASE_SHA" --candidate "$CAND
 python3 -B ci/script/check_markdown_links.py --base "$BASE_SHA" --candidate "$CANDIDATE_SHA"
 python3 -B ci/script/check_localizations.py --base "$BASE_SHA" --candidate "$CANDIDATE_SHA"
 npm --prefix web-chat run typecheck
+npm --prefix web-chat run test
 ```
+
+Besides whitespace, conflict markers and JSON/XML syntax, `check_repo_hygiene.py` also inspects the Kotlin lines this change **adds**. An empty `catch` block is an error (a swallowed exception cannot be debugged in the field), and so is any use of `GlobalScope`: it cannot be cancelled and it outlives the owner that started the work. `!!` and `printStackTrace()` are warnings, the second because it bypasses `AppLogger` and therefore its rotation and size caps. Pre-existing findings are only counted, never attributed to the current PR.
 
 根据改动范围选择额外检查：
 
 ```bash
 # WebChat
 npm --prefix web-chat ci
+npm --prefix web-chat run test
 npm --prefix web-chat run build
 
 # 示例包或 ToolPkg
@@ -88,9 +92,14 @@ python3 ./tools/example_packages/sync_example_packages.py --mode test --no-hot-r
 python3 ./tools/example_packages/sync_example_packages.py --no-hot-reload
 
 # Android JVM 单测和构建
-./gradlew :app:testDebugUnitTest
+./gradlew :app:testCloneDebugUnitTest
 ./gradlew assembleDebug
+
+# Instrumented tests (androidTest): CI has no emulator, so these only run against a connected device or a local emulator
+./gradlew :app:connectedCloneDebugAndroidTest
 ```
+
+No workflow executes the instrumented tests under `app/src/androidTest/`, so only the author can confirm locally that they compile and pass. When changing accessibility, the foreground service, `LocalWebServer` or the external HTTP servers, state the tasks actually run in the PR's "verification" section.
 
 本地构建需要手动依赖时，按 [Android 编译指南](./BUILDING.md) 下载并放置 `subpack.zip`、`jniLibs.zip` 和 `libs.zip`，不要将这些文件提交到 Git。默认本地 STT 模型由 Android 构建按 `app/config/stt-model-assets.properties` 自动准备。
 
@@ -141,12 +150,12 @@ ci: add localization checks
 
 PR 会进入 [PR Check workflow](../../../.github/workflows/pr-check.yml)，并只生成一个 `Candidate checks` 技术状态。检查运行在 GitHub 为 PR 与当前 `main` 生成的 merge candidate 上：
 
-- 快速检查：差异空白、冲突标记、JSON/XML/YAML、Actions、本地 Markdown 链接和门禁单元测试
-- 本地化：按 locale 和资源 key 归责类型、重复项、占位符及 locale 配置错误
+- Fast checks: diff whitespace, conflict markers, JSON/XML/YAML, Actions, local Markdown links, empty `catch` blocks and `GlobalScope` (errors) plus `!!` and `printStackTrace()` (warnings) on the Kotlin lines a change adds, and the gate unit tests
+- Localization: attribution by locale and resource key for type mismatches, duplicates, placeholders, translations missing from a primary `strings.xml`, and locale configuration errors
 - 翻译资源：执行 AAPT2 resource compile，不启动完整 Android 构建
 - Kotlin/Java：执行 JVM 单测
 - Native、Gradle 和构建输入：执行 assemble 与 JVM 单测
-- WebChat 和 ToolPkg：对应路径变化时执行专项检查，完整 Android lane 也会准备最终打包输入
+- WebChat and ToolPkg: dedicated checks when the corresponding paths change (for WebChat: typecheck, vitest unit tests and the Vite build); the full Android lane also prepares the final packaging inputs
 
 快速检查会在同一 job 中收集可修诊断，再统一给出一次结果。既有且未被本 PR 触碰的问题只作为计数提示。请查看 step summary 和文件 annotation 后更新 PR。
 

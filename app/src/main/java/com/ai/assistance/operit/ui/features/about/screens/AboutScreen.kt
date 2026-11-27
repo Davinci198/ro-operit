@@ -58,7 +58,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-private const val GITHUB_PROJECT_URL = "https://github.com/Davinci198/fix-operit"
+private const val GITHUB_PROJECT_URL = "https://github.com/Davinci198/ro-operit"
 
 private enum class PatchUpdatePhase {
     SELECTING_MIRROR,

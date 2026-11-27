@@ -37,10 +37,10 @@ class UpdateViewModel(private val context: Context) : ViewModel() {
                 if (m != null) {
                     if (isName) m.groupValues[2] else m.groupValues[1]
                 } else {
-                    if (isName) "fix-operit" else "Davinci198"
+                    if (isName) "ro-operit" else "Davinci198"
                 }
             } catch (_: Exception) {
-                if (isName) "fix-operit" else "Davinci198"
+                if (isName) "ro-operit" else "Davinci198"
             }
         }
     }

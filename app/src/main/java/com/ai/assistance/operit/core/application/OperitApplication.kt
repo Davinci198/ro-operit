@@ -174,8 +174,11 @@ class OperitApplication : Application(), ImageLoaderFactory, WorkConfiguration.P
         AppLogger.d(TAG, "【启动计时】cleanOnExit 清理任务已提交（异步IO） - ${System.currentTimeMillis() - startTime}ms")
 
         val defaultProfileName = applicationContext.getString(R.string.default_profile)
-        initUserPreferencesManager(applicationContext, defaultProfileName)
-        AppLogger.d(TAG, "【启动计时】用户偏好管理器初始化完成 - ${System.currentTimeMillis() - startTime}ms")
+        // The profile migration and the creation of the default memory space run asynchronously: any
+        // startup step that needs them has to join this Job, otherwise "initialised" only means the
+        // work was submitted.
+        val preferencesInitJob = initUserPreferencesManager(applicationContext, defaultProfileName)
+        AppLogger.d(TAG, "[startup-timing] user preferences init submitted (profile migration runs async) - ${System.currentTimeMillis() - startTime}ms")
 
         AppLogger.d(TAG, "【启动计时】Android权限偏好管理器已就绪 - ${System.currentTimeMillis() - startTime}ms")
 
@@ -213,8 +216,13 @@ class OperitApplication : Application(), ImageLoaderFactory, WorkConfiguration.P
         AppLogger.d(TAG, "【启动计时】JSON序列化器初始化完成 - ${System.currentTimeMillis() - startTime}ms")
 
         memoryAutoSaveScheduler = MemoryAutoSaveScheduler(applicationContext, applicationScope)
-            .also { it.start() }
-        AppLogger.d(TAG, "【启动计时】长期记忆自动保存轮询器启动完成 - ${System.currentTimeMillis() - startTime}ms")
+        // The poller scans the memory spaces of every profile, so it starts after the profile
+        // migration finished; otherwise its first run sees a half-migrated profile state.
+        applicationScope.launch {
+            preferencesInitJob.join()
+            memoryAutoSaveScheduler?.start()
+        }
+        AppLogger.d(TAG, "[startup-timing] long-term memory auto-save poller queued (waiting for the profile migration) - ${System.currentTimeMillis() - startTime}ms")
 
         // 初始化功能提示词管理器
         applicationScope.launch {

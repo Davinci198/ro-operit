@@ -541,7 +541,7 @@
     <string name="about_description">RO-Operit는 인터페이스 분석, 채팅 대화 등을 제공하여 사용자가 장치를 보다 효율적으로 사용할 수 있도록 돕는 지능형 보조 애플리케이션입니다.</string>
     <string name="about_developer">개발자: &lt;a href="https://github.com/Davinci198"&gt;Davinci198&lt;/a&gt;</string>
     <string name="about_contact">연락처: aaswordsman@foxmail.com</string>
-    <string name="about_website">&lt;a href="https://github.com/Davinci198/fix-operit"&gt;GitHub: https://github.com/Davinci198/fix-operit&lt;/a&gt;</string>
+    <string name="about_website">&lt;a href="https://github.com/Davinci198/ro-operit"&gt;GitHub: https://github.com/Davinci198/ro-operit&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 Operit. 모든 권리 보유.</string>
     <string name="star_on_github">GitHub에 스타 추가</string>
     <string name="update_log">업데이트 로그</string>
@@ -7359,4 +7359,17 @@
     <string name="ext_http_example_message_async">Hello</string>
     <string name="ext_http_example_message_broadcast">Hello</string>
 
+    <!-- Model health scan -->
+    <string name="models_scan_test_all">테스트</string>
+    <string name="models_scan_running">모델 테스트 중…</string>
+    <string name="models_scan_summary">%1$d/%2$d 확인됨 · 평균 %3$s</string>
+    <string name="models_scan_filter_all">전체</string>
+    <string name="models_scan_filter_working">정상</string>
+    <string name="models_scan_filter_broken">오류</string>
+    <string name="models_scan_probe_hint">모델 %1$d개를 찾았습니다. 테스트는 짧은 요청 하나를 보내 실제 지연 시간을 측정합니다.</string>
+    <string name="models_scan_status_ok">정상</string>
+    <string name="models_scan_status_fail">오류</string>
+    <string name="models_scan_status_timeout">시간 초과</string>
+    <string name="models_scan_clear">테스트 결과 지우기</string>
+    <string name="models_scan_no_match">필터나 검색 조건과 일치하는 모델이 없습니다</string>
 </resources>

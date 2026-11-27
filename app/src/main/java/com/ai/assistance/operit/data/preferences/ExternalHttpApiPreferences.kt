@@ -26,6 +26,18 @@ data class ExternalHttpApiConfig(
 
 class ExternalHttpApiPreferences private constructor(private val context: Context) {
 
+    /**
+     * In-memory cache of the preferences snapshot.
+     *
+     * The synchronous getters are called by the external HTTP servers on **every request**
+     * (`WebChatHttpBridge.requireBearerToken`, `ExternalChatHttpServer.requireBearerToken`). Each of
+     * those calls used to be a `runBlocking { data.first() }`, i.e. every request blocked a NanoHTTPD
+     * worker thread on a DataStore read. Only the first read blocks now; afterwards the snapshot
+     * stays in memory and every write refreshes it immediately.
+     */
+    @Volatile
+    private var cachedConfig: ExternalHttpApiConfig? = null
+
     val enabledFlow: Flow<Boolean> =
         context.externalHttpApiDataStore.data.map { preferences ->
             preferences[KEY_ENABLED] ?: false
@@ -42,16 +54,16 @@ class ExternalHttpApiPreferences private constructor(private val context: Contex
         }
 
     suspend fun setEnabled(enabled: Boolean) {
-        context.externalHttpApiDataStore.edit { preferences ->
-            preferences[KEY_ENABLED] = enabled
-        }
+        cachedConfig = context.externalHttpApiDataStore
+            .edit { preferences -> preferences[KEY_ENABLED] = enabled }
+            .toConfig()
     }
 
     suspend fun setPort(port: Int) {
         require(isValidPort(port)) { "Invalid port: $port" }
-        context.externalHttpApiDataStore.edit { preferences ->
-            preferences[KEY_PORT] = port
-        }
+        cachedConfig = context.externalHttpApiDataStore
+            .edit { preferences -> preferences[KEY_PORT] = port }
+            .toConfig()
     }
 
     suspend fun ensureBearerToken(): String {
@@ -60,49 +72,44 @@ class ExternalHttpApiPreferences private constructor(private val context: Contex
             return existing
         }
         val generated = generateBearerToken()
-        context.externalHttpApiDataStore.edit { preferences ->
-            preferences[KEY_BEARER_TOKEN] = generated
-        }
+        setBearerToken(generated)
         return generated
     }
 
     suspend fun resetBearerToken(): String {
         val generated = generateBearerToken()
-        context.externalHttpApiDataStore.edit { preferences ->
-            preferences[KEY_BEARER_TOKEN] = generated
-        }
+        setBearerToken(generated)
         return generated
     }
 
     suspend fun setBearerToken(token: String) {
-        context.externalHttpApiDataStore.edit { preferences ->
-            preferences[KEY_BEARER_TOKEN] = token
-        }
+        cachedConfig = context.externalHttpApiDataStore
+            .edit { preferences -> preferences[KEY_BEARER_TOKEN] = token }
+            .toConfig()
     }
 
     suspend fun getConfig(): ExternalHttpApiConfig {
         val preferences = context.externalHttpApiDataStore.data.first()
+        return preferences.toConfig().also { cachedConfig = it }
+    }
+
+    /** Read the snapshot synchronously; only the first call in a process, when no snapshot exists yet, blocks on DataStore. */
+    fun getConfigSync(): ExternalHttpApiConfig {
+        return cachedConfig ?: runBlocking { getConfig() }
+    }
+
+    fun getEnabled(): Boolean = getConfigSync().enabled
+
+    fun getPort(): Int = getConfigSync().port
+
+    fun getBearerToken(): String = getConfigSync().bearerToken
+
+    private fun Preferences.toConfig(): ExternalHttpApiConfig {
         return ExternalHttpApiConfig(
-            enabled = preferences[KEY_ENABLED] ?: false,
-            port = preferences[KEY_PORT] ?: DEFAULT_PORT,
-            bearerToken = preferences[KEY_BEARER_TOKEN].orEmpty()
+            enabled = this[KEY_ENABLED] ?: false,
+            port = this[KEY_PORT] ?: DEFAULT_PORT,
+            bearerToken = this[KEY_BEARER_TOKEN].orEmpty()
         )
-    }
-
-    fun getConfigSync(): ExternalHttpApiConfig = runBlocking {
-        getConfig()
-    }
-
-    fun getEnabled(): Boolean = runBlocking {
-        enabledFlow.first()
-    }
-
-    fun getPort(): Int = runBlocking {
-        portFlow.first()
-    }
-
-    fun getBearerToken(): String = runBlocking {
-        bearerTokenFlow.first()
     }
 
     companion object {

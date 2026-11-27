@@ -190,11 +190,19 @@ class WorkspaceDocumentsProvider : DocumentsProvider() {
         val child = getFileForDocId(documentId)
         
         return try {
-            child.canonicalPath.startsWith(parent.canonicalPath)
+            isInside(parent.canonicalPath, child.canonicalPath)
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error checking child document", e)
             false
         }
+    }
+
+    /**
+     * Path containment: the separator has to be included, otherwise a sibling directory that merely
+     * shares the root's prefix, such as `workspace-backup`, counts as a child.
+     */
+    private fun isInside(parentPath: String, childPath: String): Boolean {
+        return childPath == parentPath || childPath.startsWith(parentPath + File.separator)
     }
     
     /**
@@ -251,7 +259,7 @@ class WorkspaceDocumentsProvider : DocumentsProvider() {
         
         return if (path == rootPath) {
             "/"
-        } else if (path.startsWith(rootPath)) {
+        } else if (isInside(rootPath, path)) {
             path.substring(rootPath.length)
         } else {
             throw IllegalArgumentException("File is not under workspace root: $path")
@@ -269,7 +277,14 @@ class WorkspaceDocumentsProvider : DocumentsProvider() {
             val relativePath = documentId.trimStart('/')
             File(workspaceRoot, relativePath)
         }
-        
+
+        // The documentId comes from an external caller and `../` segments would escape the workspace
+        // root, so containment is re-checked on the canonical path
+        val rootPath = workspaceRoot.canonicalPath
+        if (!isInside(rootPath, file.canonicalPath)) {
+            throw SecurityException("Document is outside workspace root: $documentId")
+        }
+
         if (!file.exists()) {
             throw FileNotFoundException("File not found: ${file.absolutePath}")
         }

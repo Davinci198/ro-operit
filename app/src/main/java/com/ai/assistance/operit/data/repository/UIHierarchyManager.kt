@@ -29,7 +29,8 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.StringReader
 import kotlin.coroutines.resume
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -56,6 +57,13 @@ object UIHierarchyManager {
 
     private val _isBound = MutableStateFlow(false)
     val isBound = _isBound.asStateFlow()
+
+    /**
+     * Scope used by the install flow. `GlobalScope` is neither structured nor cancellable and
+     * swallows exceptions silently; this follows the repository's existing pattern and uses
+     * `SupervisorJob() + Dispatchers.IO`.
+     */
+    private val installScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val bindingMutex = Mutex()
 
@@ -125,7 +133,7 @@ object UIHierarchyManager {
      * 启动安装流程来安装提供者应用
      */
     fun launchProviderInstall(context: Context) {
-        GlobalScope.launch(Dispatchers.IO) {
+        installScope.launch {
             val apkFile = extractProviderApkFromAssets(context)
             if (apkFile == null) {
                 withContext(Dispatchers.Main) {

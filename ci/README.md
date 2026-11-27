@@ -2,6 +2,12 @@
 
 `script/` 保存可复现的检查入口，`test/` 保存门禁逻辑的标准库单元测试。GitHub Actions 负责准备 runner，并按变更范围调用这些入口。
 
+## Directory layout
+
+- `ci/script/` - the check entry points that both CI and a local branch run.
+- `ci/test/` - standard-library unit tests for the gate logic itself (`python3 -B -m unittest discover -s ci/test -p 'test_*.py'`).
+- `ci/script/build_apps/`, `ci/script/debug_test/`, `ci/tools/` - reserved placeholders. Git cannot track an empty directory, so each one holds a single `.gitkeep`. No workflow, script or document references them; they are kept for future multi-app build helpers, debug-test helpers and CI-side binaries, and removing them is not part of any current change.
+
 ## Candidate contract
 
 PR 技术预审只运行在 GitHub 为当前 PR 和最新目标分支生成的 merge candidate 上：
@@ -36,16 +42,19 @@ python3 -B ci/script/check_localizations.py --base "$BASE_SHA" --candidate "$CAN
 
 每个 PR 只产生一个 `Candidate checks` 技术状态。快速检查会先收集全部诊断，失败后不启动耗时阶段。
 
-- 所有改动：空白、冲突标记、JSON/XML 语法和门禁单元测试；变更 YAML 时使用 Psych AST 与 actionlint 1.7.12 检查
+- All changes: whitespace, conflict markers, JSON/XML syntax, Kotlin smells on the lines the candidate adds, and the gate unit tests; changed YAML is checked with the Psych AST and actionlint 1.7.12
+- Kotlin smells are attributed only to lines the candidate adds (`ci/script/check_kotlin_smells.py`). Errors: an empty `catch` block and any use of `GlobalScope`. Warnings: `!!` and `printStackTrace()`. Comments and string literals - including the JavaScript injected through Kotlin `"""` raw strings - are masked before matching, so JS code is never read as Kotlin and the prose explaining why a pattern was removed is never read as that pattern
 - 所有改动：比较 base/candidate 两棵 Git tree，只阻断 candidate 新增的本地断链；删除被文档引用的非 Markdown 文件也会检查
-- 本地化：按 locale、资源类型和 key 比较，只阻断 candidate 引入或实际触碰的错误
+- Localization: compares by locale, resource type and key and only blocks errors the candidate introduces or actually touches; a key missing from a primary `strings.xml` (as opposed to a variant such as `values-*-night`) also blocks, so a new string has to be translated into every locale in the same change
 - 翻译资源：运行 AAPT2 resource compile 检查资源语法，不执行 resource link 或完整 Android 构建
 - Kotlin/Java 和普通 Android 资源：运行 JVM unit tests
 - Native、Gradle 和构建输入：运行 assemble 与 JVM unit tests
-- WebChat：运行 TypeScript typecheck 与 Vite build
+- WebChat: runs the TypeScript typecheck, the vitest unit tests (`web-chat/src/**/*.test.ts`, jsdom environment) and the Vite build
 - ToolPkg：重建并核对 GitHub 示例，按独立锁文件编译 WASM 示例，再构建测试集合和生产白名单集合；JSON manifest 声明的入口与 WASM 文件必须存在且进入归档
 
-根项目、`web-chat` 和独立的 `examples/toolpkg_wasm_demo` 分别提交 `package-lock.json`，CI 使用 `npm ci` 安装确定的依赖树。
+The root project, `web-chat` and the standalone `examples/toolpkg_wasm_demo` each commit their own `package-lock.json`, and CI installs the pinned tree with `npm ci`. `tools/mcp_bridge` belongs to the pnpm workspace declared in `pnpm-workspace.yaml` and is covered by `pnpm-lock.yaml`. Every lockfile may only `resolve` from `registry.npmjs.org`, the overrides recorded in `pnpm-lock.yaml` must match `pnpm-workspace.yaml`, and every snapshot dependency must exist in `packages:`; `ci/test/test_dependency_lockfile.py` gates all three rules with the standard library alone.
+
+`ci/test/test_hotbuild_defaults.py` gates a second agreement that no build step checks: `tools/hotbuild/{apply_patch,build_patch,nightly_auto}.py` publish patch releases to the repository their `--repo` default names, and `UpdateManager.tryFetchLatestPatchUpdate` reads them from the repository hardcoded in the app. The two were out of sync once - the default appended `NightlyRelease` to the repository name, which is not a repository and answers 404 - so the test asserts the default value on all three scripts and asserts that the app's owner and repository literals still match it.
 
 PR workflow 只有 `contents: read` 权限，不读取仓库 secret，也不上传 APK/AAB。`Android Build` 是独立的可信 main/手工构建 workflow。
 

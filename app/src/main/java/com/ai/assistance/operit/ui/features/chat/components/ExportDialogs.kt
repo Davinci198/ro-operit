@@ -798,11 +798,13 @@ suspend fun exportAndroidApp(
 
             // 6. 准备签名文件
             onProgress(0.7f, context.getString(R.string.export_prepare_signing))
-            // 使用KeyStoreHelper获取密钥库
-            val keyStoreFile = KeyStoreHelper.getOrCreateKeystore(context)
+            // Ask KeyStoreHelper for this device's signing identity (generated at random on the
+            // first export; the bundled shared keystore is gone)
+            val signingIdentity = KeyStoreHelper.getOrCreateSigningIdentity(context)
             AppLogger.d(
                     "ExportDialogs",
-                    "签名使用密钥库: ${keyStoreFile.absolutePath}, 大小: ${keyStoreFile.length()}"
+                    "Signing keystore: ${signingIdentity.keyStoreFile.absolutePath}, " +
+                            "size: ${signingIdentity.keyStoreFile.length()}"
             )
 
             // 7. 设置签名信息并执行签名
@@ -822,13 +824,17 @@ suspend fun exportAndroidApp(
             val outputName = "WebApp_${Date().time}.apk"
             val outputFile = File(outputDir, outputName)
 
-            AppLogger.d("ExportDialogs", "即将签名APK，使用密钥: ${keyStoreFile.absolutePath}, 别名: androidkey")
+            AppLogger.d(
+                    "ExportDialogs",
+                    "About to sign the APK with keystore: ${signingIdentity.keyStoreFile.absolutePath}, " +
+                            "alias: ${signingIdentity.keyAlias}"
+            )
             apkEditor
                     .withSignature(
-                            keyStoreFile,
-                            "android", // 密码
-                            "androidkey", // 别名
-                            "android" // 密钥密码
+                            signingIdentity.keyStoreFile,
+                            signingIdentity.keyStorePassword,
+                            signingIdentity.keyAlias,
+                            signingIdentity.keyPassword
                     )
                     .setOutput(outputFile)
 
@@ -1031,18 +1037,6 @@ private fun addDirToZip(
             }
         }
     }
-}
-
-/** 创建或获取应用签名密钥库 */
-private fun createOrGetKeystore(context: Context): File {
-    // 直接使用KeyStoreHelper
-    return KeyStoreHelper.getOrCreateKeystore(context)
-}
-
-/** 验证密钥库文件是否有效 */
-private fun validateKeystore(file: File, type: String, password: String): Boolean {
-    // 直接使用KeyStoreHelper
-    return KeyStoreHelper.validateKeystore(file, type, password)
 }
 
 /** 复制目录及其内容 */

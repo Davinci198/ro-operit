@@ -383,17 +383,9 @@ class ExternalChatHttpServer(
             ).withCors()
         }
 
-        val authorization = session.headers.entries.firstOrNull {
-            it.key.equals("authorization", ignoreCase = true)
-        }?.value?.trim().orEmpty()
+        val actualToken = BearerToken.fromHeaders(session.headers)
 
-        val actualToken = if (authorization.startsWith("Bearer ", ignoreCase = true)) {
-            authorization.substringAfter(' ').trim()
-        } else {
-            ""
-        }
-
-        return if (actualToken == expectedToken) {
+        return if (BearerToken.matches(actualToken, expectedToken)) {
             null
         } else {
             jsonResponse(

@@ -14,7 +14,10 @@ import com.ai.assistance.operit.data.model.ActivePrompt
 import com.ai.assistance.operit.data.model.LegacyUserProfile
 import com.ai.assistance.operit.data.model.MemorySpace
 import com.ai.assistance.operit.data.model.CharacterCardMemoryProfileBindingMode
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -36,12 +39,29 @@ val preferencesManager: UserPreferencesManager
         "UserPreferencesManager not initialized. Call UserPreferencesManager.getInstance(context) first."
     )
 
-fun initUserPreferencesManager(context: Context, defaultProfileName: String = "Default") {
+/**
+ * Application-level scope used for preferences initialisation. `GlobalScope` is neither structured
+ * nor cancellable and swallows exceptions silently, so this follows the pattern already used
+ * elsewhere in the repository: `SupervisorJob() + Dispatchers.IO`.
+ */
+private val preferencesInitScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+/**
+ * Initialise the user preferences manager and create the default memory space once the profile
+ * migration has finished.
+ *
+ * @return the [Job] covering the migration and the default memory space creation. Callers that only
+ * work once the default memory space exists must join it: the migration has to finish first,
+ * otherwise a freshly created default entry hides the metadata of a published profile that still
+ * owns an ObjectBox database.
+ */
+fun initUserPreferencesManager(
+        context: Context,
+        defaultProfileName: String = "Default"
+): Job {
     val manager = UserPreferencesManager.getInstance(context)
 
-    // Migration must finish before the default memory space is created. Otherwise a fresh default
-    // entry could hide released profile metadata that still owns existing ObjectBox databases.
-    GlobalScope.launch {
+    return preferencesInitScope.launch {
         MemorySpaceProfileDocumentRepository.getInstance(context).initialize()
         manager.ensureDefaultMemorySpace(defaultProfileName)
     }

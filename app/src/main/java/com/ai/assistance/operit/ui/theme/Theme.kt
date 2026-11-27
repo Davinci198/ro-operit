@@ -14,7 +14,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -30,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
@@ -181,6 +188,27 @@ fun OperitTheme(content: @Composable () -> Unit) {
         }
     }
 
+    // Colours of the two system bars. Android 15+ ignores Window.setStatusBarColor and
+    // Window.setNavigationBarColor for apps targeting SDK 35 or newer, so the very same values are
+    // also drawn as bands at the end of this composable. Computing them once keeps the window
+    // property and the drawn band on the same colour by construction.
+    val statusBarBandColour: Color =
+        when {
+            statusBarHidden -> Color.Transparent
+            statusBarTransparent -> Color.Transparent
+            // A background image or video shows through the bar.
+            useBackgroundImage && backgroundImageUri != null -> Color.Transparent
+            useCustomStatusBarColor && customStatusBarColorValue != null ->
+                Color(customStatusBarColorValue)
+            else -> colorScheme.primary
+        }
+    val navigationBarBandColour: Color =
+        if (useBackgroundImage && backgroundImageUri != null) {
+            Color.Transparent
+        } else {
+            colorScheme.background
+        }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -202,42 +230,30 @@ fun OperitTheme(content: @Composable () -> Unit) {
                 // 显示状态栏
                 insetsController?.show(WindowInsetsCompat.Type.statusBars())
                 
-                // 状态栏颜色和图标颜色控制
-                val statusBarColor = when {
-                    statusBarTransparent -> Color.Transparent.toArgb()
-                    useBackgroundImage && backgroundImageUri != null -> Color.Transparent.toArgb()  // 有背景时透明
-                    useCustomStatusBarColor && customStatusBarColorValue != null -> customStatusBarColorValue!!.toInt()
-                    else -> colorScheme.primary.toArgb()
-                }
-                window.statusBarColor = statusBarColor
+                // The colour itself is painted by the status bar band at the end of this composable;
+                // this window property is what Android 14 and below still honour.
+                window.statusBarColor = statusBarBandColour.toArgb()
 
-                // 根据状态栏背景色动态设置状态栏图标颜色
-                // isAppearanceLightStatusBars = true 表示图标为深色（适用于浅色背景）
-                // isAppearanceLightStatusBars = false 表示图标为浅色（适用于深色背景）
-                insetsController?.isAppearanceLightStatusBars = !isColorLight(Color(statusBarColor))
+                // A light status bar means dark icons, which suits a light background.
+                insetsController?.isAppearanceLightStatusBars = !isColorLight(statusBarBandColour)
             }
             
-            // 设置导航栏颜色（底部小白条所在的区域）
-            // 在有背景图片时，让导航栏透明
+            // Navigation bar (the gesture bar area): transparent over a background image, otherwise
+            // the theme background. The band at the end of this composable paints the same colour, so
+            // the choice stays visible on Android 15+, where this window property is ignored.
+            window.navigationBarColor = navigationBarBandColour.toArgb()
             if (useBackgroundImage && backgroundImageUri != null) {
-                // 关键：禁用导航栏对比度强制模式（Android 10+）
+                // Contrast enforcement would add a scrim the background image does not want.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     window.isNavigationBarContrastEnforced = false
                 }
-                // 设置为完全透明
-                window.navigationBarColor = android.graphics.Color.TRANSPARENT
-                // 根据主题设置导航栏图标颜色
                 insetsController?.isAppearanceLightNavigationBars = !darkTheme
             } else {
-                // 没有背景时使用软件背景色作为导航栏背景色
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     window.isNavigationBarContrastEnforced = true
                 }
-                window.navigationBarColor = colorScheme.background.toArgb()
-                // 根据导航栏背景色动态设置导航栏图标颜色
-                // isAppearanceLightNavigationBars = true 表示图标为深色（适用于浅色背景）
-                // isAppearanceLightNavigationBars = false 表示图标为浅色（适用于深色背景）
-                insetsController?.isAppearanceLightNavigationBars = !isColorLight(colorScheme.background)
+                insetsController?.isAppearanceLightNavigationBars =
+                    !isColorLight(colorScheme.background)
             }
         }
     }
@@ -514,6 +530,27 @@ fun OperitTheme(content: @Composable () -> Unit) {
                     content = content,
                 )
             }
+
+            // The two system bar bands, drawn over the content because this app draws edge to edge
+            // (setDecorFitsSystemWindows(false) above). Android 15+ ignores the window colour
+            // properties for apps targeting SDK 35, so on those versions this is what actually shows
+            // the colour the user picked. Each band is exactly as tall as its own inset, so it
+            // collapses to nothing when the bar is hidden, and neither band consumes touch input.
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .windowInsetsTopHeight(WindowInsets.statusBars)
+                        .background(statusBarBandColour)
+            )
+            Box(
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .windowInsetsBottomHeight(WindowInsets.navigationBars)
+                        .background(navigationBarBandColour)
+            )
         }
     }
 }

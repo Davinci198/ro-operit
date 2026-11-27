@@ -14,7 +14,6 @@ import java.net.Proxy
 import java.net.URL
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -57,22 +56,21 @@ class StandardHttpTools(private val context: Context) {
         private const val USER_AGENT =
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
-        private val cookieStore = ConcurrentHashMap<String, List<Cookie>>()
-
         internal fun clearSharedCookies() {
-            cookieStore.clear()
+            HttpCookieStore.clear()
         }
     }
 
-    // 自定义CookieJar实现
+    // Custom CookieJar: storing and loading both go through HttpCookieStore, which applies the
+    // Path/Domain/Secure and expiry rules
     private val cookieJar =
             object : CookieJar {
                 override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-                    cookieStore[url.host] = cookies
+                    HttpCookieStore.putAll(cookies)
                 }
 
                 override fun loadForRequest(url: HttpUrl): List<Cookie> {
-                    return cookieStore[url.host] ?: emptyList()
+                    return HttpCookieStore.loadForRequest(url)
                 }
             }
 
@@ -305,11 +303,8 @@ class StandardHttpTools(private val context: Context) {
                         urlHost = url.toHttpUrlOrNull()?.host
                 )
 
-        if (customCookies != null) {
-            val requestCookieUrl = url.toHttpUrlOrNull()
-            if (requestCookieUrl != null && useCookies) {
-                cookieStore[requestCookieUrl.host] = customCookies
-            }
+        if (customCookies != null && useCookies) {
+            HttpCookieStore.putAll(customCookies)
         }
 
         val requestBuilder = Request.Builder().url(url).header("User-Agent", USER_AGENT)
@@ -578,10 +573,10 @@ class StandardHttpTools(private val context: Context) {
                     // 获取指定域名的Cookie
                     val cookies =
                             if (domain.isNotBlank()) {
-                                cookieStore[domain] ?: emptyList()
+                                HttpCookieStore.forDomain(domain)
                             } else {
                                 // 获取所有域名的Cookie
-                                cookieStore.values.flatten()
+                                HttpCookieStore.all()
                             }
 
                     // 转换为可读格式
@@ -620,7 +615,7 @@ class StandardHttpTools(private val context: Context) {
                     // 解析Cookie数据
                     val cookies = parseCookies(cookiesJson, "https://$domain")
                     if (cookies != null) {
-                        cookieStore[domain] = cookies
+                        HttpCookieStore.putAll(cookies)
                         ToolResult(
                                 toolName = tool.name,
                                 success = true,
@@ -646,7 +641,7 @@ class StandardHttpTools(private val context: Context) {
                         )
                     } else {
                         // 清除指定域名的Cookie
-                        cookieStore.remove(domain)
+                        HttpCookieStore.removeForDomain(domain)
                         ToolResult(
                                 toolName = tool.name,
                                 success = true,
@@ -748,12 +743,9 @@ class StandardHttpTools(private val context: Context) {
                             urlHost = url.toHttpUrlOrNull()?.host
                     )
 
-            // 如果有自定义Cookie，添加到cookieStore
-            if (customCookies != null) {
-                val requestCookieUrl = url.toHttpUrlOrNull()
-                if (requestCookieUrl != null && useCookiesParam?.lowercase() != "false") {
-                    cookieStore[requestCookieUrl.host] = customCookies
-                }
+            // Merge any caller-supplied cookies into the cookie store
+            if (customCookies != null && useCookiesParam?.lowercase() != "false") {
+                HttpCookieStore.putAll(customCookies)
             }
 
             // 构建多部分请求体

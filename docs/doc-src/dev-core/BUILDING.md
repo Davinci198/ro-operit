@@ -114,15 +114,31 @@ yes | sdkmanager --licenses
 ```
 
 2. 安装平台工具、SDK 平台和构建工具:
-Operit 项目依赖于 android-34 平台和 34.0.0 构建工具。
+Every module uses `compileSdk = 36`; CI additionally installs the android-34 platform and the 34.0.0 build tools for the flows that still package against 34.
 ```bash
-sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+sdkmanager "platform-tools" "platforms;android-36" "platforms;android-34" "build-tools;35.0.0" "build-tools;34.0.0"
 ```
-3. 安装项目指定的 NDK 版本:
-本项目要求使用 NDK 25.1.8937393。
+3. Install the NDK and CMake versions this project pins:
+The **single source of truth** for the NDK version is `operit.ndkVersion` in the root `gradle.properties`
+(every module that builds native code reads it through `providers.gradleProperty("operit.ndkVersion")`).
+It is currently `27.0.12077973` and matches `ANDROID_NDK_VERSION` in
+`.github/workflows/pr-check.yml` and what `setup_android_env.sh` installs. When you change the NDK
+version, update all three at once, otherwise local and CI native artifacts come from different toolchains.
 ```bash
-sdkmanager "ndk;25.1.8937393"
+sdkmanager "ndk;27.0.12077973" "cmake;3.22.1"
 ```
+
+## **Appendix: the environment scripts in the repository root**
+
+The root keeps three runnable environment scripts. They are troubleshooting tools: they are not part of the Gradle build and CI never calls them. Run them by hand when needed, and do not delete or rename them:
+
+| Script | What it does | When to use it |
+| :---- | :---- | :---- |
+| `setup_android_env.sh` | Installs or repairs the Android SDK environment in one pass: cmdline-tools, `platforms;android-36`, `build-tools;36.0.0`, `ndk;27.0.12077973`, environment variables and licences | On a fresh machine, or when `sdkmanager`/`ANDROID_HOME` misbehaves (the automated form of **step 4** above) |
+| `setup_gradelew_ubuntu_dsh.sh` | Makes `gradlew` executable and symlinks NDK 27's `clang-18` to `clang` | On Ubuntu (including DSH/containers) when you hit `clang: command not found` or a gradlew permission error |
+| `fix-ndk-arm64-final.sh` | Fixes the eight NDK 27 cross-compilation problems that appear when building on an ARM64 device (Motorola G57 + Ubuntu 24) | Only when compiling on the phone / an ARM64 host, together with [README-NDK-ARM64.md](../../../README-NDK-ARM64.md) |
+
+All three only write under `$ANDROID_HOME` and set executable bits inside the repository; none of them changes Gradle configuration, and `operit.ndkVersion` in `gradle.properties` remains the single source of truth for the NDK version.
 
 ## **附：性能优化 - 配置编译资源**
 
@@ -148,7 +164,7 @@ org.gradle.parallel=true
 请根据需要选择以下两种克隆方式（项目包含 Git 子模块）：
 
 **推荐：先 Fork 后克隆你的仓库**
-在 GitHub 打开上游仓库并点击 Fork： [Davinci198/fix-operit](https://github.com/Davinci198/fix-operit)
+在 GitHub 打开上游仓库并点击 Fork： [Davinci198/ro-operit](https://github.com/Davinci198/ro-operit)
 克隆你的 Fork，并只初始化公开构建依赖 `terminal`：
 ```bash
 git clone https://github.com/<你的 GitHub 用户名>/Operit.git
@@ -157,12 +173,12 @@ git submodule update --init --recursive terminal
 ```
 （可选）添加上游仓库以便同步更新：
 ```bash
-git remote add upstream https://github.com/Davinci198/fix-operit.git
+git remote add upstream https://github.com/Davinci198/ro-operit.git
 ```
 
 **备选：不 Fork，直接克隆上游仓库（只读）**
 ```bash
-git clone https://github.com/Davinci198/fix-operit.git
+git clone https://github.com/Davinci198/ro-operit.git
 cd Operit
 git submodule update --init --recursive terminal
 ```
@@ -196,6 +212,12 @@ npm install
 ```bash
 npm --prefix web-chat install
 ```
+After installing you can run the frontend typecheck and unit tests at any time (`web-chat` uses vitest + jsdom; test files live next to the sources and are named `*.test.ts`):
+```bash
+npm --prefix web-chat run typecheck
+npm --prefix web-chat run test
+```
+The `Check WebChat` step in CI runs the typecheck, the tests and `npm run build:webchat` in order; any of the three failing blocks the PR.
 
 6. **先构建 web-chat 并同步到 Android assets (关键步骤！):**
 ```bash
@@ -236,7 +258,7 @@ app/build/outputs/apk/clone/app-clone.apk
 | :---- | :---- |
 | sdkmanager: command not found | 环境变量未正确设置或生效。请检查 **~/.bashrc** 文件内容，并执行 source ~/.bashrc。 |
 | Could not determine Java version... | **JAVA_HOME** 环境变量不正确，或安装了错误的 JDK 版本。请确保已安装 **JDK 21** 并指向正确的路径。 |
-| NDK not found. | 确保已在 **第四步** 中使用 sdkmanager 安装了项目所需的 **ndk;25.1.8937393** 版本。 |
+| NDK not found. | Make sure **step 4** installed the version named by `operit.ndkVersion` in `gradle.properties` (currently **ndk;27.0.12077973**). |
 | pnpm: command not found | 尚未安装 `pnpm`。请先执行 `sudo npm install -g pnpm`，再重新运行 `python3 ./tools/example_packages/sync_example_packages.py`。 |
 | Missing web-chat/dist. Run `npm --prefix web-chat run build` first. | 尚未构建 `web-chat` 或构建失败。请先执行 `npm --prefix web-chat install`，再在项目根目录执行 `npm run build:webchat`。 |
 | ERROR: prebuild step failed | `tools/example_packages/sync_example_packages.py` 在预构建 `examples/` 时失败。请先确认已在项目根目录执行 `npm install`，并检查 `pnpm -v`、`python3 --version` 是否可用。 |

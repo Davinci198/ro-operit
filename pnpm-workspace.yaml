@@ -19,7 +19,12 @@ minimumReleaseAge: 10080
 
 # Security overrides for transitive packages that the parent still pins to a vulnerable range.
 # These are the versions Suricode's scan asked for; keep them until the parents catch up.
+#
+# zod allows 4.x only. A range written as `^3.25.76 || ^4.6.6` resolves to 3.25.76 - the last 3.x
+# release, which carries the memory-exhaustion advisory for oversized constrained collections - while
+# SECURITY.md records 4.6.7 as the decision. @modelcontextprotocol/sdk 1.31.0 declares
+# `zod: ^3.25 || ^4.0`, so 4.x is a supported peer.
 overrides:
   fast-uri: ^3.1.6
   picomatch@<4.0.0: ^2.3.2
-  zod: "^3.25.76 || ^4.6.6"
+  zod: ^4.6.7
